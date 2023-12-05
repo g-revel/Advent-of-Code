@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+
+
+<script type="text/javascript">
+const DIGITS_IN_LETTERS = [
+	'one',
+	'two',
+	'three',
+	'four',
+	'five',
+	'six',
+	'seven',
+	'eight',
+	'nine'
+]
+
+function sumOfFirstAndLastDigitOrLetterDigitInString(inputString, verbose) {
+	const charArray = inputString.split('')
+	if (charArray.length === 0) {
+		return 0
+	}
+	const isNumber = string => parseInt(string, 10)
+
+	const firstAndLastDigitsOrLetterDigits = DIGITS_IN_LETTERS.reduce((acc, digit, index) => {
+		const indexOfLetterDigit = inputString.indexOf(digit)
+		const lastIndexOfLetterDigit = inputString.lastIndexOf(digit)
+		return indexOfLetterDigit === -1
+		? acc
+		: [
+		    acc[0].index === -1 || indexOfLetterDigit < acc[0].index ? { index: indexOfLetterDigit, digit: index + 1 } : acc[0],
+		    acc[1].index === -1 || lastIndexOfLetterDigit > acc[1].index ? { index: lastIndexOfLetterDigit, digit: index + 1 } : acc[1]
+		  ]
+	}, [
+		{ index: charArray.findIndex(isNumber), digit: parseInt(charArray.find(isNumber)) },
+		{ index: charArray.findLastIndex(isNumber), digit: parseInt(charArray.findLast(isNumber)) }
+	])
+
+	return firstAndLastDigitsOrLetterDigits[0].digit * 10 + firstAndLastDigitsOrLetterDigits[1].digit
+}
+
+function sumOfFirstAndLastDigitInString(inputString) {
+	const charArray = inputString.split('')
+	const isNumber = string => parseInt(string, 10)
+	const firstNumber = parseInt(charArray.find(isNumber)) || 0
+	const secondNumber = parseInt(charArray.findLast(isNumber)) || 0
+	return firstNumber * 10 + secondNumber
+}
+
+function handleFileContent(lines) {
+	console.log('result', lines.reduce((acc, current, index) => acc + sumOfFirstAndLastDigitOrLetterDigitInString(current), 0))
+}
+
+
+// Fonction pour lire le contenu du fichier
+function lireFichier(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    // Événement déclenché lorsque la lecture est terminée
+    reader.onload = (event) => {
+      const contenu = event.target.result;
+      const lignes = contenu.split('\n');
+      resolve(lignes);
+    };
+
+    // Événement déclenché en cas d'erreur de lecture
+    reader.onerror = (event) => {
+      reject(event.target.error);
+    };
+
+    // Lecture du fichier en tant que texte
+    reader.readAsText(file);
+  });
+}
+
+// Fonction appelée lorsque le fichier est sélectionné
+function gestionFichierSelectionne(event) {
+  const fichier = event.target.files[0];
+
+  if (fichier) {
+    // Utilisation de la fonction pour lire le fichier
+    lireFichier(fichier)
+      .then((lignes) => {
+      	handleFileContent(lignes);
+        // Affichage des lignes dans la console (remplacez cette partie par le traitement souhaité)
+        console.log('Contenu du fichier :', lignes);
+      })
+      .catch((erreur) => {
+        console.error('Erreur lors de la lecture du fichier :', erreur);
+      });
+  }
+}
+
+// Écouteur d'événement pour le changement de sélection de fichier
+document.getElementById('inputFichier').addEventListener('change', gestionFichierSelectionne);
+
+</script>
+</body>
+</html>

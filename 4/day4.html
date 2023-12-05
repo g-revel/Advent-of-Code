@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+
+
+<script type="text/javascript">
+
+const getCardData = game => {
+  const [ title, content ] = game.split(':')
+  const [ winningNumbers, myNumbers ] = content.split('|').map(numbers => numbers.split(' ').filter(number => number !== '').map(string => parseInt(string, 10)))
+
+  return {
+    cardId: parseInt(title.split(' ').filter(c => c !== '')[1], 10),
+    winningNumbers,
+    myNumbers,
+    numberOfWinningNumbers: myNumbers.reduce((myWinningNumbers, myNumber) => myWinningNumbers + (winningNumbers.includes(myNumber) ? 1 : 0), 0)
+  }
+}
+
+const getTotalScoreOfAllCards = allCards =>
+  allCards.reduce((totalScore, currentCard) => totalScore + Math.floor(Math.pow(2, currentCard.numberOfWinningNumbers - 1)), 0)
+
+const getNumberOfCopies = allCards =>
+  allCards.reduce((numberOfCopiesForEachId, currentCard, index) => {    
+    const scoreOfCurrentCard = currentCard.numberOfWinningNumbers
+    for(let i=1; i<=scoreOfCurrentCard; i++) {
+      numberOfCopiesForEachId[index + i] += numberOfCopiesForEachId[index]
+    }
+    return numberOfCopiesForEachId
+  }, Array(allCards.length).fill(1)).reduce((sum, current) => sum + current, 0)
+
+const handleFileContent = lines => {
+  const allCards = lines.reduce((acc, current) => [ ...acc, getCardData(current)], [])
+  console.log('part 1', getTotalScoreOfAllCards(allCards))
+  console.log('part 2', getNumberOfCopies(allCards))
+}
+
+
+// Fonction pour lire le contenu du fichier
+function lireFichier(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    // Événement déclenché lorsque la lecture est terminée
+    reader.onload = (event) => {
+      const contenu = event.target.result;
+      const lignes = contenu.split('\n');
+      resolve(lignes);
+    };
+
+    // Événement déclenché en cas d'erreur de lecture
+    reader.onerror = (event) => {
+      reject(event.target.error);
+    };
+
+    // Lecture du fichier en tant que texte
+    reader.readAsText(file);
+  });
+}
+
+// Fonction appelée lorsque le fichier est sélectionné
+function gestionFichierSelectionne(event) {
+  const fichier = event.target.files[0];
+
+  if (fichier) {
+    // Utilisation de la fonction pour lire le fichier
+    lireFichier(fichier)
+      .then((lignes) => {    
+        lignes.pop()
+        handleFileContent(lignes);
+        // Affichage des lignes dans la console (remplacez cette partie par le traitement souhaité)
+        // console.log('Contenu du fichier :', lignes);
+      })
+      .catch((erreur) => {
+        console.error('Erreur lors de la lecture du fichier :', erreur);
+      });
+  }
+}
+
+// Écouteur d'événement pour le changement de sélection de fichier
+document.getElementById('inputFichier').addEventListener('change', gestionFichierSelectionne);
+
+</script>
+</body>
+</html>
