@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+<script type="text/javascript">
+
+const getRaces = lines => {
+	const getData = index => lines[index].split(':')[1].split(' ').filter(data => data !== '').map(number => parseInt(number, 10))
+	return [ getData(0), getData(1) ]
+}
+
+const getDistanceByHoldingGivenNumberOfMs = (totalTime, timeHold) => timeHold * (totalTime - timeHold)
+
+const getNumberOfWaysToBeatTheRecord = (time, distance) => 
+	Array.from({ length: time - 1 }, (_, i) => i + 1).reduce((numberOfWaysToBeatTheRecord, timeHold) =>
+	  numberOfWaysToBeatTheRecord + (getDistanceByHoldingGivenNumberOfMs(time, timeHold) > distance ? 1 : 0)
+	  , 0)
+
+const handleFileContent = lines => {
+	const [ times, distances ] = getRaces(lines)
+	console.log('part1', times.reduce((acc, time, index) => acc * getNumberOfWaysToBeatTheRecord(time, distances[index]), 1))
+	console.log('part2', getNumberOfWaysToBeatTheRecord(47707566, 282107911471062))
+}
+
+</script>
+<script src="../openingFile.js"></script>
+</body>
+</html>
