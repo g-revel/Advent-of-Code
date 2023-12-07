@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+<script type="text/javascript">
+
+const ORDER_OF_SINGLE_CARDS = [ '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A' ]
+const ORDER_OF_SINGLE_CARDS_PART_2 = [ 'J', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A' ]
+
+const ORDER_OF_HANDS = [ 'High card', 'One pair', 'Two pair', 'Three of a kind', 'Full house', 'Four of a kind', 'Five of a kind' ]
+
+const getRankOfHand = hand => {
+	const handOccurences = hand.split('').reduce((occurences, card) => occurences[card] ? { ...occurences, [card]: occurences[card] + 1 } : { ...occurences, [card]: 1 }, {})
+	switch(Math.max(...Object.values(handOccurences))) {
+		case 5: return ORDER_OF_HANDS.indexOf('Five of a kind')
+		case 4: return ORDER_OF_HANDS.indexOf('Four of a kind')
+		case 3: return Object.keys(handOccurences).length === 2 ? ORDER_OF_HANDS.indexOf('Full house') : ORDER_OF_HANDS.indexOf('Three of a kind')
+		case 2: return Object.keys(handOccurences).length === 3 ? ORDER_OF_HANDS.indexOf('Two pair') : ORDER_OF_HANDS.indexOf('One pair')
+		case 1: return ORDER_OF_HANDS.indexOf('High card')
+		default: alert('bug')
+	}
+}
+
+const getRankOfHandWithJokers = hand => {
+	const handOccurences = hand.split('').reduce((occurences, card) => occurences[card] ? { ...occurences, [card]: occurences[card] + 1 } : { ...occurences, [card]: 1 }, {})
+	
+	if (handOccurences['J']) {
+		const cardWithMostOccurencesExcludingJokers = Object.entries({ ...handOccurences, J: 0 }).reduce((cardWithMaxValue, entry) => entry[1] > cardWithMaxValue[1] ? entry : cardWithMaxValue, [ 'J', 0 ])[0]
+		if (cardWithMostOccurencesExcludingJokers !== 'J') {
+			handOccurences[cardWithMostOccurencesExcludingJokers] += handOccurences['J']
+		}
+	}
+
+	switch(Math.max(...Object.values(handOccurences))) {
+		case 5: return ORDER_OF_HANDS.indexOf('Five of a kind')
+		case 4: return ORDER_OF_HANDS.indexOf('Four of a kind')
+		case 3: return Object.entries(handOccurences).some(occurence => occurence[1] === 2 && occurence[0] !== 'J') ? ORDER_OF_HANDS.indexOf('Full house') : ORDER_OF_HANDS.indexOf('Three of a kind')
+		case 2: return Object.keys(handOccurences).length === 3 ? ORDER_OF_HANDS.indexOf('Two pair') : ORDER_OF_HANDS.indexOf('One pair')
+		case 1: return ORDER_OF_HANDS.indexOf('High card')
+		default: alert('bug')
+	}
+}
+
+const sortCards = (cardA, cardB, part2) => {
+	const diffOfRank = part2 ? getRankOfHandWithJokers(cardA.cards) - getRankOfHandWithJokers(cardB.cards) : getRankOfHand(cardA.cards) - getRankOfHand(cardB.cards)
+	if (diffOfRank !== 0) return diffOfRank
+
+	const orderOfSingleCards = part2 ? ORDER_OF_SINGLE_CARDS_PART_2 : ORDER_OF_SINGLE_CARDS
+
+	const sortEqualHands = (handA, handB) => handA[0] === handB[0] ? sortEqualHands(handA.slice(1), handB.slice(1)) : orderOfSingleCards.indexOf(handA[0]) - orderOfSingleCards.indexOf(handB[0])
+	return sortEqualHands(cardA.cards.split(''), cardB.cards.split(''))
+}
+
+const handleFileContent = lines => {
+	const cardsAndBids = lines.map(line => {
+		const [ cards, bid ] = line.split(' ')
+		return { cards, bid: parseInt(bid, 10) }
+	})
+	const cardsAndBidsPart2 = JSON.parse(JSON.stringify(cardsAndBids))
+
+	cardsAndBids.sort(sortCards)
+	cardsAndBidsPart2.sort((a, b) => sortCards(a, b, true))
+
+	console.log('part1', cardsAndBids.reduce((totalWinnings, cardsAndBid, index) => totalWinnings + cardsAndBid.bid * (index + 1), 0))
+	console.log('part2', cardsAndBidsPart2.reduce((totalWinnings, cardsAndBid, index) => totalWinnings + cardsAndBid.bid * (index + 1), 0))
+}
+
+</script>
+<script src="../openingFile.js"></script>
+</body>
+</html>
