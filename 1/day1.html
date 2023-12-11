@@ -19,7 +19,7 @@ const DIGITS_IN_LETTERS = [
 	'nine'
 ]
 
-function sumOfFirstAndLastDigitOrLetterDigitInString(inputString, verbose) {
+function sumOfFirstAndLastDigitOrLetterDigitInString(inputString) {
 	const charArray = inputString.split('')
 	const isNumber = string => parseInt(string, 10)
 
@@ -49,8 +49,8 @@ function sumOfFirstAndLastDigitInString(inputString) {
 }
 
 function handleFileContent(lines) {
-	console.log('part1', lines.reduce((acc, current, index) => acc + sumOfFirstAndLastDigitInString(current), 0))
-	console.log('part2', lines.reduce((acc, current, index) => acc + sumOfFirstAndLastDigitOrLetterDigitInString(current), 0))
+	console.log('part1', lines.reduce((acc, current) => acc + sumOfFirstAndLastDigitInString(current), 0))
+	console.log('part2', lines.reduce((acc, current) => acc + sumOfFirstAndLastDigitOrLetterDigitInString(current), 0))
 }
 
 </script>
