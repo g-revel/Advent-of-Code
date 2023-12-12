@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+<script type="text/javascript">
+
+const matchArrangement = (sequence, counts) => {
+	const computedCounts = sequence.split('.').filter(chars => chars !== '').map(chars => chars.length.toString())
+	return computedCounts.length === counts.length && computedCounts.every((computedCount, index) => computedCount === counts[index])
+}
+
+const getAllArrangements = sequence => {
+	const allArrangements = []
+	const numberOfUnknown = sequence.filter(char => char === '?').length
+	for (let i=0; i<Math.pow(2, numberOfUnknown); i++) {
+		let binary = i.toString(2)
+		while (binary.length < numberOfUnknown) {
+			binary = `0${binary}`
+		}
+		let j = -1
+		const sequenceWithUnknownReplaced = sequence.map(char => {
+			if (char === '?') {
+				 j++
+				 return binary[j] === '1' ? '#' : '.'
+			}
+			return char
+		})
+		allArrangements.push(sequenceWithUnknownReplaced.join(''))
+	}
+	return allArrangements
+}
+
+const getNumberOfMatchingArrangements = (line, quintuplate) => {
+	const sequence = line.split(' ')[0].split('')
+	const counts = line.split(' ')[1].split(',')
+	const sequenceToUse = quintuplate ? [ ...sequence, '?', ...sequence, '?', ...sequence, '?', ...sequence, '?', ...sequence ] : sequence
+	console.log('sequenceToUse', sequenceToUse)
+	const countsToUse = quintuplate ? [ ...counts, ...counts, ...counts, ...counts, ...counts ] : counts
+	return getAllArrangements(sequenceToUse).filter(seq => matchArrangement(seq, countsToUse)).length
+}
+
+const handleFileContent = lines => {
+	console.log('part1', lines.reduce((sumOfAllArrangements, line) => sumOfAllArrangements + getNumberOfMatchingArrangements(line), 0))
+	// console.log('part2', lines.reduce((sumOfAllArrangements, line) => sumOfAllArrangements + getNumberOfMatchingArrangements(line, true), 0))
+}
+
+</script>
+<script src="../openingFile.js"></script>
+</body>
+</html>
