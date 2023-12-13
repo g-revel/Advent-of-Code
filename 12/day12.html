@@ -33,13 +33,36 @@ const getAllArrangements = sequence => {
 	return allArrangements
 }
 
+const getAllProbableArrangements = (sequence, numberOfDamagedToFind) => {
+	const allArrangements = []
+	const numberOfUnknown = sequence.filter(char => char === '?').length
+	const numberOfDamaged = sequence.filter(char => char === '#').length
+	for (let i=0; i<Math.pow(2, numberOfUnknown); i++) {
+		let binary = i.toString(2)
+		if (binary.split('').filter(bit => bit === '1').length + numberOfDamaged !== numberOfDamagedToFind) {
+			while (binary.length < numberOfUnknown) {
+				binary = `0${binary}`
+			}
+			let j = -1
+			const sequenceWithUnknownReplaced = sequence.map(char => {
+				if (char === '?') {
+					j++
+					return binary[j] === '1' ? '#' : '.'
+				}
+				return char
+			})
+			allArrangements.push(sequenceWithUnknownReplaced.join(''))
+		}
+	}
+	return allArrangements
+}
+
 const getNumberOfMatchingArrangements = (line, quintuplate) => {
 	const sequence = line.split(' ')[0].split('')
 	const counts = line.split(' ')[1].split(',')
 	const sequenceToUse = quintuplate ? [ ...sequence, '?', ...sequence, '?', ...sequence, '?', ...sequence, '?', ...sequence ] : sequence
-	console.log('sequenceToUse', sequenceToUse)
 	const countsToUse = quintuplate ? [ ...counts, ...counts, ...counts, ...counts, ...counts ] : counts
-	return getAllArrangements(sequenceToUse).filter(seq => matchArrangement(seq, countsToUse)).length
+	return getAllArrangements(sequenceToUse, countsToUse.reduce((acc, count) => acc + count, 0)).filter(seq => matchArrangement(seq, countsToUse)).length
 }
 
 const handleFileContent = lines => {
