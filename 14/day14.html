@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+<script type="text/javascript">
+
+const getTotalLoad = tiltedPlatform => tiltedPlatform.reduce((acc, line, index) =>
+	acc + ((tiltedPlatform.length - index) * line.split('').filter(char => char === 'O').length), 0)
+
+const getReversedArray = array => array.map((_, index) => array[array.length - 1 - index])
+
+const transpose = doubleArray => doubleArray[0].split('').map((_, column) => doubleArray.map(row => row[column]).join(''))
+
+const tiltPlatformWithDirection = (platform, direction) => {
+	switch(direction) {
+		case 'north': return transpose(tiltPlatform(transpose(platform)))
+		case 'south': return getReversedArray(transpose(tiltPlatform(transpose(getReversedArray(platform)))))
+		case 'west': return tiltPlatform(platform)
+		case 'east': return tiltPlatform(platform.map(line => getReversedArray(line.split('')).join('')))
+		  .map(line => getReversedArray(line.split('')).join(''))
+	}
+}
+
+const tiltPlatform = (platform, direction) =>
+	platform.map(line =>
+		line.split('').reduce((newLineStatus, char, index) => {
+			switch(char) {
+				case '.': return { ...newLineStatus, line: [ ...newLineStatus.line, '.' ] }
+				case '#': return { line: [ ...newLineStatus.line, '#' ], stop: index }
+				case 'O': newLineStatus.line[newLineStatus.stop + 1] = 'O'
+				return { line: index === newLineStatus.stop + 1 ? newLineStatus.line : [ ...newLineStatus.line,  '.' ], stop: newLineStatus.stop + 1 }
+			}
+		}, { line: [], stop: -1 }).line.join('')
+	)
+
+const tiltOneCycle = platform => tiltPlatformWithDirection(
+	tiltPlatformWithDirection(
+		tiltPlatformWithDirection(
+			tiltPlatformWithDirection(
+				platform,
+				'north'
+			),
+			'west'
+		),
+		'south'
+	),
+	'east'
+)
+
+const tiltXCycles = (platform, x) => {
+	let tilted = platform
+	let count = 0
+	const allFirstLines = []
+	const cycles = {}
+	while (count < 500) {
+		console.log(count)
+
+		tilted = tiltOneCycle(tilted)
+
+		if (count === 341) {
+			console.log('FINAL 1', getTotalLoad(tilted))
+			console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[113])))
+		}
+
+		if (count === 196) {
+			console.log('FINAL 1', getTotalLoad(tilted))
+			console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[82])))
+		}
+
+		if (allFirstLines.includes(JSON.stringify(tilted))) {
+			console.log(`cycle${count}`, allFirstLines.indexOf(JSON.stringify(tilted)))
+		} else {
+			allFirstLines.push(JSON.stringify(tilted))
+		}
+		count++
+	}
+	/*console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[94])))
+	console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[113])))
+	
+	console.log('FINAL 2', getTotalLoad(JSON.parse(allFirstLines[94])))
+	console.log('FINAL 2', getTotalLoad(JSON.parse(allFirstLines[94])))*/
+
+	console.log('FINAL', getTotalLoad(JSON.parse(allFirstLines[93])))
+	return tilted
+
+}
+
+const handleFileContent = lines => {
+	// console.log('part1', getTotalLoad(tiltPlatformWithDirection(lines, 'north')))
+	console.log('part2', getTotalLoad(tiltXCycles(lines, 1000000000)))
+
+	//console.log('341', ((341 - 80) % 38) + 80)
+	//console.log('196', ((196 - 80) % 38) + 80)
+	//console.log('1000000000', ((1000000000 - 80) % 38) + 80)
+} // 104405 too low
+
+// 341 113
+// 196 82
+// 1000000000 94
+
+</script>
+<script src="../openingFile.js"></script>
+</body>
+</html>
