@@ -55,51 +55,32 @@ const tiltXCycles = (platform, x) => {
 	let count = 0
 	const allFirstLines = []
 	const cycles = {}
-	while (count < 500) {
-		console.log(count)
+	let cyclesCompleted = false
 
+	while (!cyclesCompleted) {
 		tilted = tiltOneCycle(tilted)
 
-		if (count === 341) {
-			console.log('FINAL 1', getTotalLoad(tilted))
-			console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[113])))
-		}
-
-		if (count === 196) {
-			console.log('FINAL 1', getTotalLoad(tilted))
-			console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[82])))
-		}
-
-		if (allFirstLines.includes(JSON.stringify(tilted))) {
-			console.log(`cycle${count}`, allFirstLines.indexOf(JSON.stringify(tilted)))
+		const indexOf = allFirstLines.indexOf(JSON.stringify(tilted))
+		if (indexOf !== -1) {
+			if (cycles[indexOf]) {
+				cyclesCompleted = true
+			} else {
+				cycles[indexOf] = count
+			}
 		} else {
 			allFirstLines.push(JSON.stringify(tilted))
 		}
 		count++
 	}
-	/*console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[94])))
-	console.log('FINAL 1', getTotalLoad(JSON.parse(allFirstLines[113])))
-	
-	console.log('FINAL 2', getTotalLoad(JSON.parse(allFirstLines[94])))
-	console.log('FINAL 2', getTotalLoad(JSON.parse(allFirstLines[94])))*/
 
-	console.log('FINAL', getTotalLoad(JSON.parse(allFirstLines[93])))
-	return tilted
-
+	const keys = Object.keys(cycles)
+	return JSON.parse(allFirstLines[(x - parseInt(keys[0], 10)) % keys.length + parseInt(keys[0], 10) - 1])
 }
 
 const handleFileContent = lines => {
-	// console.log('part1', getTotalLoad(tiltPlatformWithDirection(lines, 'north')))
+	console.log('part1', getTotalLoad(tiltPlatformWithDirection(lines, 'north')))
 	console.log('part2', getTotalLoad(tiltXCycles(lines, 1000000000)))
-
-	//console.log('341', ((341 - 80) % 38) + 80)
-	//console.log('196', ((196 - 80) % 38) + 80)
-	//console.log('1000000000', ((1000000000 - 80) % 38) + 80)
-} // 104405 too low
-
-// 341 113
-// 196 82
-// 1000000000 94
+}
 
 </script>
 <script src="../openingFile.js"></script>
