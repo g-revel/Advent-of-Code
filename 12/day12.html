@@ -33,30 +33,6 @@ const getAllArrangements = sequence => {
 	return allArrangements
 }
 
-const getAllProbableArrangements = (sequence, numberOfDamagedToFind) => {
-	const allArrangements = []
-	const numberOfUnknown = sequence.filter(char => char === '?').length
-	const numberOfDamaged = sequence.filter(char => char === '#').length
-	for (let i=0; i<Math.pow(2, numberOfUnknown); i++) {
-		let binary = i.toString(2)
-		if (binary.split('').filter(bit => bit === '1').length + numberOfDamaged !== numberOfDamagedToFind) {
-			while (binary.length < numberOfUnknown) {
-				binary = `0${binary}`
-			}
-			let j = -1
-			const sequenceWithUnknownReplaced = sequence.map(char => {
-				if (char === '?') {
-					j++
-					return binary[j] === '1' ? '#' : '.'
-				}
-				return char
-			})
-			allArrangements.push(sequenceWithUnknownReplaced.join(''))
-		}
-	}
-	return allArrangements
-}
-
 const getNumberOfMatchingArrangements = (line, quintuplate) => {
 	const sequence = line.split(' ')[0].split('')
 	const counts = line.split(' ')[1].split(',')
@@ -65,9 +41,100 @@ const getNumberOfMatchingArrangements = (line, quintuplate) => {
 	return getAllArrangements(sequenceToUse, countsToUse.reduce((acc, count) => acc + count, 0)).filter(seq => matchArrangement(seq, countsToUse)).length
 }
 
+const howManyArrangementsForOneNumber = (stringAsArray, number) => {
+	const indexOfFirstDamaged = stringAsArray.indexOf('#')
+
+	if (indexOfFirstDamaged === -1) {
+		return Math.max(stringAsArray.length - number + 1, 0)
+	}
+
+	const indexOfLastDamaged = stringAsArray.lastIndexOf('#')
+	const slicedArray = stringAsArray.slice(Math.max(0, indexOfLastDamaged - number + 1), Math.min(stringAsArray.length, indexOfFirstDamaged + number))
+	
+	return Math.max(slicedArray.length - number + 1, 0)
+}
+
+const howManyArrangementsForSeveralNumbers = (string, numbers) => {
+	if (numbers.length === 0) return 1
+	if (numbers.length === 1) return howManyArrangementsForOneNumber(string, numbers[0])
+	// if (numbers.length > group.size[1] || numbers.length < group.size[0]) alert('aie')
+
+	if (string.length < numbers.reduce((sum, number) => sum + number, 0) + numbers.length - 1) return 0
+
+	let total = 0
+	let shift = 0
+
+	while (numbers[0] + shift !== string.length && string[numbers[0] + shift] === '#') {
+		shift++
+	}
+	while (
+		(shift === 0 || string[shift - 1] !== '#')
+		&& (numbers[0] + shift === string.length || string[numbers[0] + shift] !== '#')
+		&& (string.length - (numbers[0] + shift + 1) >= numbers.slice(1).reduce((sum, number) => sum + number, 0) + numbers.length - 2)
+	) {
+		total += howManyArrangementsForSeveralNumbers(string.slice(numbers[0] + shift + 1), numbers.slice(1))
+		shift++
+	}
+	return total
+
+}
+
+const howManyGroupsPossibleInString = string => {
+	const maxString = string.split('')
+	string.split('').forEach((char, index) => {
+		maxString[index] = char === '?' && (index === 0 || maxString[index - 1] === '?') && (index === maxString.length - 1 || maxString[index + 1] === '?') ? '#' : char
+	})
+	return [ string.split('').includes('#') ? 1 : 0, maxString.join('').split('?').filter(char => char !== '').length ]
+}
+
+const allGroupsArrangedWithCoefficients = (PossibleGroupsSizes, coefs) => {
+
+}
+
+const allWaysToGetNGroups = (groupNumbers, n) => {
+	
+}
+
+const numberOfArrangementsForLine = (allGroups, coefs, og = false) => {
+	// console.log('groups', allGroups)
+	// console.log('coefs', coefs)
+	if (coefs.length === 0) return 1
+	let total = 0
+	allGroups.forEach((group, index) => {
+		/*if (og) {
+			console.log('index', index)
+		}*/
+		let subTotal = 0
+		for (let i = Math.min(coefs.length, group.size[1]); i>=group.size[0]; i--) {
+			/*if (og) {
+				console.log('i', i)
+			}*/
+			const nbArrangements = howManyArrangementsForSeveralNumbers(group.string, coefs.slice(0, i))
+			/*console.log('string', group.string.join(''))
+			console.log('coefs', coefs.slice(0, i))
+			console.log('nbArrangements', nbArrangements)*/
+			if (nbArrangements !== 0) {
+				total += nbArrangements * numberOfArrangementsForLine(allGroups.slice(index + 1), coefs.slice(i))
+			}
+			//console.log('sub total', total)
+		}
+	})
+	//console.log('total', total)
+	return total
+}
+const getNumberOfMatchingArrangementsOpti = (line, quintuplate) => {
+	const sequence = line.split(' ')[0].split('')
+	const counts = line.split(' ')[1].split(',').map(number => parseInt(number, 10))
+	const sequenceToUse = quintuplate ? [ ...sequence, '?', ...sequence, '?', ...sequence, '?', ...sequence, '?', ...sequence ] : sequence
+	const countsToUse = quintuplate ? [ ...counts, ...counts, ...counts, ...counts, ...counts ] : counts
+	console.log('count')
+	return numberOfArrangementsForLine(sequenceToUse.join('').split('.').filter(line => line !== '').map(string => ({ size: howManyGroupsPossibleInString(string), string: string.split('') })), countsToUse, true)
+}
+
 const handleFileContent = lines => {
-	console.log('part1', lines.reduce((sumOfAllArrangements, line) => sumOfAllArrangements + getNumberOfMatchingArrangements(line), 0))
+	// console.log('part1', lines.reduce((sumOfAllArrangements, line) => sumOfAllArrangements + getNumberOfMatchingArrangements(line), 0))
 	// console.log('part2', lines.reduce((sumOfAllArrangements, line) => sumOfAllArrangements + getNumberOfMatchingArrangements(line, true), 0))
+	console.log('part2', lines.reduce((sumOfAllArrangements, line) => sumOfAllArrangements + getNumberOfMatchingArrangementsOpti(line, true), 0))
 }
 
 </script>
