@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+<script type="text/javascript">
+
+const initializeModules = lines => {
+	const initModules = lines.reduce((modules, line) => {
+		const [ name, destinations ] = line.split(' -> ')
+		switch(name[0]) {
+			case '%': return { ...modules, flipFlops: { ...modules.flipFlops, [name.slice(1)]: { state: 'off', destinations: destinations.split(', ') } } }
+			case '&': return { ...modules, conjunctions: { ...modules.conjunctions, [name.slice(1)]: { destinations: destinations.split(', '), inputs: {} } } }
+			case 'b': return { ...modules, broadcaster: destinations.split(', ') }
+		}
+	}, { flipFlops: {}, conjunctions: {} })
+
+	Object.keys(initModules.conjunctions).forEach(conjunction => {
+		Object.keys(initModules.flipFlops).forEach(flipFlop => {
+			if (initModules.flipFlops[flipFlop].destinations.includes(conjunction)) {
+				initModules.conjunctions[conjunction].inputs[flipFlop] = 'low'
+			}
+		})
+		Object.keys(initModules.conjunctions).forEach(inputConjunction => {
+			if (initModules.conjunctions[inputConjunction].destinations.includes(conjunction)) {
+				initModules.conjunctions[conjunction].inputs[inputConjunction] = 'low'
+			}
+		})
+	})
+
+	return initModules
+}
+
+const sendSignal = (modules, signalSent, signalsToSend) => {
+	if (Object.keys(modules.flipFlops).includes(signalSent.destination)) {
+		if (signalSent.pulse === 'low') {
+			const state = modules.flipFlops[signalSent.destination].state
+			const pulseToSend = state === 'off' ? 'high' : 'low'
+			modules.flipFlops[signalSent.destination].destinations.forEach(destination => {
+				signalsToSend.push({ destination, origin: signalSent.destination, pulse: pulseToSend })
+			})
+			modules.flipFlops[signalSent.destination].state = state === 'off' ? 'on' : 'off'
+		}
+	} else if (Object.keys(modules.conjunctions).includes(signalSent.destination)) {
+		modules.conjunctions[signalSent.destination].inputs[signalSent.origin] = signalSent.pulse
+		const pulseToSend = Object.values(modules.conjunctions[signalSent.destination].inputs).every(pulse => pulse === 'high') ? 'low' : 'high'
+		modules.conjunctions[signalSent.destination].destinations.forEach(destination => {
+			signalsToSend.push({ destination, origin: signalSent.destination, pulse: pulseToSend })
+		})
+	}
+}
+
+const pushButton = modules => {
+	let lowPulses = 1
+	let highPulses = 0
+	let signalSentToRxInputs = []
+	let signalsToSend = modules.broadcaster.map(destination => ({ destination, pulse: 'low'}))
+	while (signalsToSend.length > 0) {
+		const nextSignals = []
+		signalsToSend.forEach(signalToSend => {
+			signalToSend.pulse === 'low' ? lowPulses++ : highPulses++
+			sendSignal(modules, signalToSend, nextSignals)
+		})
+		nextSignals.filter(nextSignal => nextSignal.destination === 'gf' && nextSignal.pulse === 'high').forEach(signal => { // gf is the only conjunction to rx
+			signalSentToRxInputs.push(signal.origin)
+		})
+		signalsToSend = nextSignals
+	}
+	return [ lowPulses, highPulses, signalSentToRxInputs ]
+}
+
+const handleFileContent = lines => {
+	const modules = initializeModules(lines)
+
+	let lowPulses = 0
+	let highPulses = 0
+	let i = 1
+	let part1 = null
+	let cyclesWhenSignalSentToRx = { kr: [], zs: [], kf: [], qk: [] }
+
+	while(Object.values(cyclesWhenSignalSentToRx).some(cycle => cycle.length === 0)) {
+		const pulses = pushButton(modules)
+
+		if (part1 === null) {
+			lowPulses += pulses[0]
+			highPulses += pulses[1]
+			if (i === 1000) part1 = lowPulses * highPulses
+		}
+
+		pulses[2].forEach(module => {
+			cyclesWhenSignalSentToRx[module].push(i)
+		})
+
+		i++
+	}
+
+	console.log('part1', lowPulses * highPulses)
+	console.log('part2', Object.values(cyclesWhenSignalSentToRx).flat().reduce((product, number) => product * number, 1))
+	// supposed to be lcm but too long to compute, luckily turns out that lcm = product of every number
+}
+
+</script>
+<script src="../openingFile.js"></script>
+</body>
+</html>

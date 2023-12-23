@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<input type="file" id="inputFichier" />
+<script type="text/javascript">
+
+const LENGTH = 131
+
+const coordinatesAroundCell = cell => [
+	cell >= 1000 && cell - 1000,
+	cell + 1000 < (LENGTH - 1) * 1000 && cell + 1000,
+	cell % 1000 > 0 && cell - 1,
+	cell % 1000 < LENGTH - 1 && cell + 1
+].filter(v => v)
+
+const moveOne = grid => {
+	const { elf, rocks } = grid
+
+	return elf.reduce((acc, position) =>
+		[
+			...acc,
+			...coordinatesAroundCell(position).reduce((newPositions, elfMoved) =>
+				rocks.includes(elfMoved) || newPositions.includes(elfMoved) || acc.includes(elfMoved)
+					? newPositions
+					: [ ...newPositions, elfMoved ]
+			, [])
+		]
+	, [])
+}
+
+const moveXTimes = (grid, x) => {
+	const newGrid = JSON.parse(JSON.stringify(grid))
+	for (let i=0; i<x; i++) {
+		newGrid.elf = moveOne(newGrid)
+	}
+	return newGrid
+}
+
+const parseGrid = lines => lines.reduce((grid, line, y) =>
+	line.split('').reduce((acc, cell, x) =>
+		cell === '#'
+			? { ...acc, rocks: [ ...acc.rocks, y * 1000 + x ] }
+			: cell === 'S'
+				? { ...acc, elf: [ y * 1000 + x ] }
+				: acc
+	, grid)
+, { rocks: [] })
+
+const handleFileContent = lines => {
+	const mainData = parseGrid(lines)
+	console.log('data', mainData)
+	console.log('part1', moveXTimes(mainData, 64).elf.length)
+}
+
+</script>
+<script src="../openingFile.js"></script>
+</body>
+</html>
