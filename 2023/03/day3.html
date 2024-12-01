@@ -1,83 +1,107 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title></title>
+  <title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
 
-const NO_SYMBOL = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
+    const NO_SYMBOL = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
 
-const handleFileContent = lines => {
-  const linesAsGrid = lines.map(line => line.split(''))
+    const handleFileContent = lines => {
+      const linesAsGrid = lines.map(line => line.split(''))
 
-  const getPartNumber = (lineNumber, columnStartNumber, columnEndNumber, adjacentToStarCriteria = false) => {
-    const startY = lineNumber === 0 ? lineNumber : lineNumber - 1
-    const endY = lineNumber === lines.length - 1 ? lineNumber : lineNumber + 1
-    const startX = columnStartNumber === 0 ? columnStartNumber : columnStartNumber - 1
-    const endX = columnEndNumber === linesAsGrid[lineNumber].length - 1 ? columnEndNumber : columnEndNumber + 1
+      const getPartNumber = (lineNumber, columnStartNumber, columnEndNumber, adjacentToStarCriteria = false) => {
+        const startY = lineNumber === 0 ? lineNumber : lineNumber - 1
+        const endY = lineNumber === lines.length - 1 ? lineNumber : lineNumber + 1
+        const startX = columnStartNumber === 0 ? columnStartNumber : columnStartNumber - 1
+        const endX = columnEndNumber === linesAsGrid[lineNumber].length - 1 ? columnEndNumber : columnEndNumber + 1
 
-    const getNumber = (lineNumber, columnStartNumber, columnEndNumber) => {
-      let finalNumber = 0
-      let indexInFor = 0
-      const numberLength = columnEndNumber - columnStartNumber
-      for (let k = columnEndNumber; k >= columnStartNumber; k--) {
-        finalNumber += parseInt(linesAsGrid[lineNumber][k]) * Math.pow(10, indexInFor)
-        indexInFor++
-      }
-      return finalNumber
-    }
-    for(let i = startY; i <= endY; i++) {
-      for(let j = startX; j <= endX; j++) {
-        // PART 1
-        if (adjacentToStarCriteria && linesAsGrid[i][j] === '*') {
-          return { isPartNumber: true, number: getNumber(lineNumber, columnStartNumber, columnEndNumber), star: { x: j, y: i } }
+        const getNumber = (lineNumber, columnStartNumber, columnEndNumber) => {
+          let finalNumber = 0
+          let indexInFor = 0
+          const numberLength = columnEndNumber - columnStartNumber
+          for (let k = columnEndNumber; k >= columnStartNumber; k--) {
+            finalNumber += parseInt(linesAsGrid[lineNumber][k]) * Math.pow(10, indexInFor)
+            indexInFor++
+          }
+          return finalNumber
         }
-        // PART 2
-        if (!adjacentToStarCriteria && !NO_SYMBOL.includes(linesAsGrid[i][j])) {
-          return { isPartNumber: true, number: getNumber(lineNumber, columnStartNumber, columnEndNumber) }
+        for (let i = startY; i <= endY; i++) {
+          for (let j = startX; j <= endX; j++) {
+            // PART 1
+            if (adjacentToStarCriteria && linesAsGrid[i][j] === '*') {
+              return { isPartNumber: true, number: getNumber(lineNumber, columnStartNumber, columnEndNumber), star: { x: j, y: i } }
+            }
+            // PART 2
+            if (!adjacentToStarCriteria && !NO_SYMBOL.includes(linesAsGrid[i][j])) {
+              return { isPartNumber: true, number: getNumber(lineNumber, columnStartNumber, columnEndNumber) }
+            }
+          }
         }
+
+        return { isPartNumber: false }
       }
-    }
 
-    return { isPartNumber: false }
-  }
-
-  const part1 = linesAsGrid.reduce((acc, lineAsGrid, lineIndex) => {
-    const resultOfReduce = lineAsGrid.reduce((lineStatus, columnAsGrid, columnIndex) => {
-      if (columnAsGrid !== '.' && NO_SYMBOL.includes(columnAsGrid)) {
-        if (lineStatus.goingThroughNumber) {
-          if (columnIndex === linesAsGrid.length -1) {
-            const { isPartNumber, number } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex)
+      const part1 = linesAsGrid.reduce((acc, lineAsGrid, lineIndex) => {
+        const resultOfReduce = lineAsGrid.reduce((lineStatus, columnAsGrid, columnIndex) => {
+          if (columnAsGrid !== '.' && NO_SYMBOL.includes(columnAsGrid)) {
+            if (lineStatus.goingThroughNumber) {
+              if (columnIndex === linesAsGrid.length - 1) {
+                const { isPartNumber, number } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex)
+                if (isPartNumber) {
+                  return { ...lineStatus, goingThroughNumber: false, totalOfLine: lineStatus.totalOfLine + number }
+                }
+              }
+              return lineStatus
+            }
+            return { ...lineStatus, goingThroughNumber: true, startIndex: columnIndex }
+          }
+          if (lineStatus.goingThroughNumber) {
+            const { isPartNumber, number } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex - 1)
             if (isPartNumber) {
               return { ...lineStatus, goingThroughNumber: false, totalOfLine: lineStatus.totalOfLine + number }
             }
           }
-          return lineStatus
-        }
-        return { ...lineStatus, goingThroughNumber: true, startIndex: columnIndex }
-      }
-      if (lineStatus.goingThroughNumber) {
-        const { isPartNumber, number } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex - 1)
-        if (isPartNumber) {
-          return { ...lineStatus, goingThroughNumber: false, totalOfLine: lineStatus.totalOfLine + number }
-        }        
-      }
-      return { ...lineStatus, goingThroughNumber: false }
-    }, { goingThroughNumber: false, startIndex: 0, totalOfLine: 0 }).totalOfLine
-    return acc + resultOfReduce
-  }, 0)
+          return { ...lineStatus, goingThroughNumber: false }
+        }, { goingThroughNumber: false, startIndex: 0, totalOfLine: 0 }).totalOfLine
+        return acc + resultOfReduce
+      }, 0)
 
-  const allStarsCoordinatesWithAdjacentPartNumbers = linesAsGrid.reduce((acc, lineAsGrid, lineIndex) => {
-    const resultOfReduce = lineAsGrid.reduce((lineStatus, columnAsGrid, columnIndex) => {
-      if (columnAsGrid !== '.' && NO_SYMBOL.includes(columnAsGrid)) {
-        if (lineStatus.goingThroughNumber) {
-          if (columnIndex === linesAsGrid.length -1) {
-            const { isPartNumber, number, star } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex, true)
+      const allStarsCoordinatesWithAdjacentPartNumbers = linesAsGrid.reduce((acc, lineAsGrid, lineIndex) => {
+        const resultOfReduce = lineAsGrid.reduce((lineStatus, columnAsGrid, columnIndex) => {
+          if (columnAsGrid !== '.' && NO_SYMBOL.includes(columnAsGrid)) {
+            if (lineStatus.goingThroughNumber) {
+              if (columnIndex === linesAsGrid.length - 1) {
+                const { isPartNumber, number, star } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex, true)
+                if (isPartNumber) {
+                  const existingStarX = lineStatus.totalOfStars[star.x] ? lineStatus.totalOfStars[star.x] : {}
+                  const existingStarY = Object.values(existingStarX).length === 0 ? [] : lineStatus.totalOfStars[star.x][star.y]
+                  return {
+                    ...lineStatus,
+                    goingThroughNumber: false,
+                    totalOfStars: {
+                      ...lineStatus.totalOfStars,
+                      [star.x]: {
+                        ...existingStarX,
+                        [star.y]: [...existingStarY, number]
+                      }
+                    }
+                  }
+                }
+              }
+              return lineStatus
+            }
+            return { ...lineStatus, goingThroughNumber: true, startIndex: columnIndex }
+          }
+          if (lineStatus.goingThroughNumber) {
+            const { isPartNumber, number, star } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex - 1, true)
             if (isPartNumber) {
               const existingStarX = lineStatus.totalOfStars[star.x] ? lineStatus.totalOfStars[star.x] : {}
-              const existingStarY = Object.values(existingStarX).length === 0 ? [] : lineStatus.totalOfStars[star.x][star.y]
+              const existingStarY = Object.values(existingStarX).length === 0 ? [] : lineStatus.totalOfStars[star.x][star.y] || []
               return {
                 ...lineStatus,
                 goingThroughNumber: false,
@@ -85,47 +109,26 @@ const handleFileContent = lines => {
                   ...lineStatus.totalOfStars,
                   [star.x]: {
                     ...existingStarX,
-                    [star.y]: [ ...existingStarY, number ]
+                    [star.y]: [...existingStarY, number]
                   }
                 }
               }
             }
           }
-          return lineStatus
-        }
-        return { ...lineStatus, goingThroughNumber: true, startIndex: columnIndex }
-      }
-      if (lineStatus.goingThroughNumber) {
-        const { isPartNumber, number, star } = getPartNumber(lineIndex, lineStatus.startIndex, columnIndex - 1, true)
-        if (isPartNumber) {
-          const existingStarX = lineStatus.totalOfStars[star.x] ? lineStatus.totalOfStars[star.x] : {}
-          const existingStarY = Object.values(existingStarX).length === 0 ? [] : lineStatus.totalOfStars[star.x][star.y] || []
-          return {
-            ...lineStatus,
-            goingThroughNumber: false,
-            totalOfStars: {
-              ...lineStatus.totalOfStars,
-              [star.x]: {
-                ...existingStarX,
-                [star.y]: [ ...existingStarY, number ]
-              }
-            }
-          }
-        }        
-      }
-      return { ...lineStatus, goingThroughNumber: false }
-    }, { goingThroughNumber: false, startIndex: 0, totalOfStars: acc }).totalOfStars
-    return resultOfReduce
-  }, {})
+          return { ...lineStatus, goingThroughNumber: false }
+        }, { goingThroughNumber: false, startIndex: 0, totalOfStars: acc }).totalOfStars
+        return resultOfReduce
+      }, {})
 
 
-  const part2 = Object.values(allStarsCoordinatesWithAdjacentPartNumbers).reduce((acc, current) => acc + Object.values(current).reduce((acc2, current2) => current2.length === 2 ? acc2 + current2[0] * current2[1] : acc2, 0), 0)
+      const part2 = Object.values(allStarsCoordinatesWithAdjacentPartNumbers).reduce((acc, current) => acc + Object.values(current).reduce((acc2, current2) => current2.length === 2 ? acc2 + current2[0] * current2[1] : acc2, 0), 0)
 
-  console.log('part1', part1)
-  console.log('part2', part2)
-}
+      console.log('part1', part1)
+      console.log('part2', part2)
+    }
 
-</script>
-<script src="../openingFile.js"></script>
+  </script>
+  <script src="../../openingFile.js"></script>
 </body>
+
 </html>

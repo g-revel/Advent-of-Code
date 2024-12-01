@@ -1,44 +1,47 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const hash = string => Array.from({ length: string.length }, (_, i) => i).reduce((result, index) => ((result + string.charCodeAt(index)) * 17) % 256, 0)
+		const hash = string => Array.from({ length: string.length }, (_, i) => i).reduce((result, index) => ((result + string.charCodeAt(index)) * 17) % 256, 0)
 
-const splitStep = stepData =>
-	stepData.includes('-') ? { lens: stepData.split('-')[0], operator: '-'} : { lens: stepData.split('=')[0], operator: '=', length: stepData.split('=')[1] }
+		const splitStep = stepData =>
+			stepData.includes('-') ? { lens: stepData.split('-')[0], operator: '-' } : { lens: stepData.split('=')[0], operator: '=', length: stepData.split('=')[1] }
 
-const hashMap = mainData => {
-	const boxes = JSON.parse(JSON.stringify(Array(256).fill([])))
+		const hashMap = mainData => {
+			const boxes = JSON.parse(JSON.stringify(Array(256).fill([])))
 
-	mainData.forEach(stepData => {
-		const { lens, operator, length } = splitStep(stepData)
-		const boxNumber = hash(lens)
-		const indexOfLens = boxes[boxNumber].findIndex(boxLens => boxLens.lens === lens)
-		if (operator === '=') {
-			if (indexOfLens === -1) {
-				boxes[boxNumber].push({ lens, length })
-			} else {
-				boxes[boxNumber][indexOfLens] = { lens, length }
-			}
-		} else if(indexOfLens !== -1 ) {
-			boxes[boxNumber] = [ ...boxes[boxNumber].slice(0, indexOfLens), ...boxes[boxNumber].slice(indexOfLens + 1) ] 
+			mainData.forEach(stepData => {
+				const { lens, operator, length } = splitStep(stepData)
+				const boxNumber = hash(lens)
+				const indexOfLens = boxes[boxNumber].findIndex(boxLens => boxLens.lens === lens)
+				if (operator === '=') {
+					if (indexOfLens === -1) {
+						boxes[boxNumber].push({ lens, length })
+					} else {
+						boxes[boxNumber][indexOfLens] = { lens, length }
+					}
+				} else if (indexOfLens !== -1) {
+					boxes[boxNumber] = [...boxes[boxNumber].slice(0, indexOfLens), ...boxes[boxNumber].slice(indexOfLens + 1)]
+				}
+			})
+
+			return boxes.reduce((result, box, i) => result + box.reduce((res, boxContent, j) => res + (i + 1) * (j + 1) * boxContent.length, 0), 0)
 		}
-	})
 
-	return boxes.reduce((result, box, i) => result + box.reduce((res, boxContent, j) => res + (i+1) * (j+1) * boxContent.length, 0), 0)
-}
+		const handleFileContent = lines => {
+			console.log('part1', lines[0].split(',').reduce((sumOfResults, string) => sumOfResults + hash(string), 0))
+			console.log('part2', hashMap(lines[0].split(',')))
+		}
 
-const handleFileContent = lines => {
-	console.log('part1', lines[0].split(',').reduce((sumOfResults, string) => sumOfResults + hash(string), 0))
-	console.log('part2', hashMap(lines[0].split(',')))
-}
-
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

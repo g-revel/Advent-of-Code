@@ -1,133 +1,136 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const operators = {
-	'<': (a, b) => a < b,
-	'>': (a, b) => a > b
-}
+		const operators = {
+			'<': (a, b) => a < b,
+			'>': (a, b) => a > b
+		}
 
-const parseData = lines => {
-	let fillingPart1 = true
-	let data = { workflows: {}, ratings: [] }
-	lines.forEach(line => {
-		if (line === '') {
-			fillingPart1 = false
-		} else if (fillingPart1) {
-			const splitted = line.slice(0, line.length - 1).split('{')
-			data.workflows[splitted[0]] = splitted[1].split(',').map(condition => {
-				const compare = condition.includes('<') ? '<' : '>' 
-				return condition.includes(':') ?
-				{
-					compare,
-					part: condition.split(':')[0].split(compare)[0],
-					value: parseInt(condition.split(':')[0].split(compare)[1], 10),
-					result: condition.split(':')[1]
-				} : condition
+		const parseData = lines => {
+			let fillingPart1 = true
+			let data = { workflows: {}, ratings: [] }
+			lines.forEach(line => {
+				if (line === '') {
+					fillingPart1 = false
+				} else if (fillingPart1) {
+					const splitted = line.slice(0, line.length - 1).split('{')
+					data.workflows[splitted[0]] = splitted[1].split(',').map(condition => {
+						const compare = condition.includes('<') ? '<' : '>'
+						return condition.includes(':') ?
+							{
+								compare,
+								part: condition.split(':')[0].split(compare)[0],
+								value: parseInt(condition.split(':')[0].split(compare)[1], 10),
+								result: condition.split(':')[1]
+							} : condition
+					})
+				} else {
+					data.ratings.push(
+						line.slice(1, line.length - 1)
+							.split(',')
+							.reduce((rating, property) => ({ ...rating, [property.split('=')[0]]: parseInt(property.split('=')[1], 10) }), {})
+					)
+				}
 			})
-		} else {
-			data.ratings.push(
-				line.slice(1, line.length - 1)
-				.split(',')
-				.reduce((rating, property) => ({ ...rating, [property.split('=')[0]]: parseInt(property.split('=')[1], 10) }), {})
-			)
+			return data
 		}
-	})
-	return data
-}
 
-const applyWorkflowToRating = (workflow, rating) => {
-	for (let i=0; i<workflow.length; i++) {
-		let rule = workflow[i]
-		if (typeof rule === 'string') return rule
-		if (operators[rule.compare](rating[rule.part], rule.value)) return rule.result
-	}
-}
-
-const splitIntervals = (intervals, rule) => {
-	const { compare, part, value } = rule
-	const shift = compare === '<' ? 1 : 0
-	return [
-		{
-			...intervals,
-			[part]: [ intervals[part][0], Math.min(intervals[part][1], value - shift) ],
-			...intervals[part][0] > value - shift && { error: true }
-		},
-		{
-			...intervals,
-			[part]: [ Math.max(value + 1 - shift, intervals[part][0]), intervals[part][1] ],
-			...intervals[part][1] < value + 1 - shift && { error: true }
-		}
-	]
-}
-
-const applyWorkflowToIntervals = (workflow, intervals) => {
-	const result = []
-	let newIntervals = JSON.parse(JSON.stringify(intervals))
-	for (let i=0; i<workflow.length; i++) {
-		let rule = workflow[i]
-		if (rule !== 'R') {
-			if (typeof rule === 'string') result.push({ key: rule, intervals: newIntervals })
-			else {
-				const [ intervalA, intervalB ] = splitIntervals(newIntervals, rule)
-
-				const matchIntervals = rule.compare === '<' ? intervalA : intervalB
-				if (!matchIntervals.error && rule.result !== 'R') {
-					result.push({ key: rule.result, intervals: matchIntervals })
-				}
-
-				const remainingIntervals = rule.compare === '<' ? intervalB : intervalA
-				if (remainingIntervals.error) {
-					return result
-				}
-				newIntervals = remainingIntervals
+		const applyWorkflowToRating = (workflow, rating) => {
+			for (let i = 0; i < workflow.length; i++) {
+				let rule = workflow[i]
+				if (typeof rule === 'string') return rule
+				if (operators[rule.compare](rating[rule.part], rule.value)) return rule.result
 			}
 		}
-	}
-	return result
-}
 
-const recursivelyGetIntervals = (workflows, currentWorkflow, intervals, acceptedIntervals) => {
-	const resultIntervals = applyWorkflowToIntervals(currentWorkflow, intervals)
-	acceptedIntervals.push(...resultIntervals.filter(interval => interval.key === 'A').map(interval => interval.intervals))
+		const splitIntervals = (intervals, rule) => {
+			const { compare, part, value } = rule
+			const shift = compare === '<' ? 1 : 0
+			return [
+				{
+					...intervals,
+					[part]: [intervals[part][0], Math.min(intervals[part][1], value - shift)],
+					...intervals[part][0] > value - shift && { error: true }
+				},
+				{
+					...intervals,
+					[part]: [Math.max(value + 1 - shift, intervals[part][0]), intervals[part][1]],
+					...intervals[part][1] < value + 1 - shift && { error: true }
+				}
+			]
+		}
 
-	resultIntervals.filter(interval => interval.key !== 'A').forEach(interval => {
-		recursivelyGetIntervals(workflows, workflows[interval.key], interval.intervals, acceptedIntervals)
-	})
-}
+		const applyWorkflowToIntervals = (workflow, intervals) => {
+			const result = []
+			let newIntervals = JSON.parse(JSON.stringify(intervals))
+			for (let i = 0; i < workflow.length; i++) {
+				let rule = workflow[i]
+				if (rule !== 'R') {
+					if (typeof rule === 'string') result.push({ key: rule, intervals: newIntervals })
+					else {
+						const [intervalA, intervalB] = splitIntervals(newIntervals, rule)
 
-const getAllAcceptedIntervals = workflows => {
-	const acceptedIntervals = []
-	recursivelyGetIntervals(workflows, workflows['in'], { x: [ 1, 4000 ], m: [ 1, 4000 ], a: [ 1, 4000 ], s: [ 1, 4000 ] }, acceptedIntervals)
-	return acceptedIntervals
+						const matchIntervals = rule.compare === '<' ? intervalA : intervalB
+						if (!matchIntervals.error && rule.result !== 'R') {
+							result.push({ key: rule.result, intervals: matchIntervals })
+						}
 
-}
+						const remainingIntervals = rule.compare === '<' ? intervalB : intervalA
+						if (remainingIntervals.error) {
+							return result
+						}
+						newIntervals = remainingIntervals
+					}
+				}
+			}
+			return result
+		}
 
-const handleFileContent = lines => {
-	const mainData = parseData(lines)
+		const recursivelyGetIntervals = (workflows, currentWorkflow, intervals, acceptedIntervals) => {
+			const resultIntervals = applyWorkflowToIntervals(currentWorkflow, intervals)
+			acceptedIntervals.push(...resultIntervals.filter(interval => interval.key === 'A').map(interval => interval.intervals))
 
-	const isRatingAccepted = rating => {
-		let currentWorkflow
-		let workflowResult = 'in'
+			resultIntervals.filter(interval => interval.key !== 'A').forEach(interval => {
+				recursivelyGetIntervals(workflows, workflows[interval.key], interval.intervals, acceptedIntervals)
+			})
+		}
 
-		do {
-			currentWorkflow = mainData.workflows[workflowResult]
-			workflowResult = applyWorkflowToRating(currentWorkflow, rating)
-		} while (![ 'A', 'R' ].includes(workflowResult))
+		const getAllAcceptedIntervals = workflows => {
+			const acceptedIntervals = []
+			recursivelyGetIntervals(workflows, workflows['in'], { x: [1, 4000], m: [1, 4000], a: [1, 4000], s: [1, 4000] }, acceptedIntervals)
+			return acceptedIntervals
 
-		return workflowResult === 'A'
-	}
+		}
 
-	console.log('part1', mainData.ratings.reduce((sum, rating) => isRatingAccepted(rating) ? sum + Object.values(rating).reduce((a, b) => a + b, 0) : sum, 0))
-	console.log('part2', getAllAcceptedIntervals(mainData.workflows).map(inter => Object.values(inter)).reduce((sum, intervals) => sum + intervals.reduce((product, interval) => product * (interval[1] - interval[0] + 1), 1), 0))
-}
+		const handleFileContent = lines => {
+			const mainData = parseData(lines)
 
-</script>
-<script src="../openingFile.js"></script>
+			const isRatingAccepted = rating => {
+				let currentWorkflow
+				let workflowResult = 'in'
+
+				do {
+					currentWorkflow = mainData.workflows[workflowResult]
+					workflowResult = applyWorkflowToRating(currentWorkflow, rating)
+				} while (!['A', 'R'].includes(workflowResult))
+
+				return workflowResult === 'A'
+			}
+
+			console.log('part1', mainData.ratings.reduce((sum, rating) => isRatingAccepted(rating) ? sum + Object.values(rating).reduce((a, b) => a + b, 0) : sum, 0))
+			console.log('part2', getAllAcceptedIntervals(mainData.workflows).map(inter => Object.values(inter)).reduce((sum, intervals) => sum + intervals.reduce((product, interval) => product * (interval[1] - interval[0] + 1), 1), 0))
+		}
+
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

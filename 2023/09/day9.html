@@ -1,33 +1,36 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const differencesBetweenAllNumbers = numbers =>
-	numbers.slice(1).reduce((differences, number, index) => [ ...differences, number - numbers[index] ] , [])
+		const differencesBetweenAllNumbers = numbers =>
+			numbers.slice(1).reduce((differences, number, index) => [...differences, number - numbers[index]], [])
 
-const nextNumberOf = numbers => {
-	if (numbers.every(number => number === 0)) return 0
-	return numbers[numbers.length - 1] + nextNumberOf(differencesBetweenAllNumbers(numbers))
-}
+		const nextNumberOf = numbers => {
+			if (numbers.every(number => number === 0)) return 0
+			return numbers[numbers.length - 1] + nextNumberOf(differencesBetweenAllNumbers(numbers))
+		}
 
-const preNumberOf = numbers => {
-	if (numbers.every(number => number === 0)) return 0
-	return numbers[0] - preNumberOf(differencesBetweenAllNumbers(numbers))
-}
+		const preNumberOf = numbers => {
+			if (numbers.every(number => number === 0)) return 0
+			return numbers[0] - preNumberOf(differencesBetweenAllNumbers(numbers))
+		}
 
-const handleFileContent = lines => {
-	const parsedLines = lines.map(line => line.split(' ').map(number => parseInt(number, 10)))
+		const handleFileContent = lines => {
+			const parsedLines = lines.map(line => line.split(' ').map(number => parseInt(number, 10)))
 
-	console.log('part1', parsedLines.reduce((acc, line) => acc + nextNumberOf(line), 0))
-	console.log('part2', parsedLines.reduce((acc, line) => acc + preNumberOf(line), 0))
-}
+			console.log('part1', parsedLines.reduce((acc, line) => acc + nextNumberOf(line), 0))
+			console.log('part2', parsedLines.reduce((acc, line) => acc + preNumberOf(line), 0))
+		}
 
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

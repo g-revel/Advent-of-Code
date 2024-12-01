@@ -1,43 +1,46 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
 
-const getCardData = game => {
-  const [ title, content ] = game.split(':')
-  const [ winningNumbers, myNumbers ] = content.split('|').map(numbers => numbers.split(' ').filter(number => number !== '').map(string => parseInt(string, 10)))
+    const getCardData = game => {
+      const [title, content] = game.split(':')
+      const [winningNumbers, myNumbers] = content.split('|').map(numbers => numbers.split(' ').filter(number => number !== '').map(string => parseInt(string, 10)))
 
-  return {
-    cardId: parseInt(title.split(' ').filter(c => c !== '')[1], 10),
-    winningNumbers,
-    myNumbers,
-    numberOfWinningNumbers: myNumbers.reduce((myWinningNumbers, myNumber) => myWinningNumbers + (winningNumbers.includes(myNumber) ? 1 : 0), 0)
-  }
-}
-
-const getTotalScoreOfAllCards = allCards =>
-  allCards.reduce((totalScore, currentCard) => totalScore + Math.floor(Math.pow(2, currentCard.numberOfWinningNumbers - 1)), 0)
-
-const getNumberOfCopies = allCards =>
-  allCards.reduce((numberOfCopiesForEachId, currentCard, index) => {    
-    const scoreOfCurrentCard = currentCard.numberOfWinningNumbers
-    for(let i=1; i<=scoreOfCurrentCard; i++) {
-      numberOfCopiesForEachId[index + i] += numberOfCopiesForEachId[index]
+      return {
+        cardId: parseInt(title.split(' ').filter(c => c !== '')[1], 10),
+        winningNumbers,
+        myNumbers,
+        numberOfWinningNumbers: myNumbers.reduce((myWinningNumbers, myNumber) => myWinningNumbers + (winningNumbers.includes(myNumber) ? 1 : 0), 0)
+      }
     }
-    return numberOfCopiesForEachId
-  }, Array(allCards.length).fill(1)).reduce((sum, current) => sum + current, 0)
 
-const handleFileContent = lines => {
-  const allCards = lines.reduce((acc, current) => [ ...acc, getCardData(current)], [])
-  console.log('part 1', getTotalScoreOfAllCards(allCards))
-  console.log('part 2', getNumberOfCopies(allCards))
-}
+    const getTotalScoreOfAllCards = allCards =>
+      allCards.reduce((totalScore, currentCard) => totalScore + Math.floor(Math.pow(2, currentCard.numberOfWinningNumbers - 1)), 0)
 
-</script>
-<script src="../openingFile.js"></script>
+    const getNumberOfCopies = allCards =>
+      allCards.reduce((numberOfCopiesForEachId, currentCard, index) => {
+        const scoreOfCurrentCard = currentCard.numberOfWinningNumbers
+        for (let i = 1; i <= scoreOfCurrentCard; i++) {
+          numberOfCopiesForEachId[index + i] += numberOfCopiesForEachId[index]
+        }
+        return numberOfCopiesForEachId
+      }, Array(allCards.length).fill(1)).reduce((sum, current) => sum + current, 0)
+
+    const handleFileContent = lines => {
+      const allCards = lines.reduce((acc, current) => [...acc, getCardData(current)], [])
+      console.log('part 1', getTotalScoreOfAllCards(allCards))
+      console.log('part 2', getNumberOfCopies(allCards))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
 </body>
+
 </html>

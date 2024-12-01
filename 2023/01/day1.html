@@ -1,59 +1,62 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const DIGITS_IN_LETTERS = [
-	'one',
-	'two',
-	'three',
-	'four',
-	'five',
-	'six',
-	'seven',
-	'eight',
-	'nine'
-]
+		const DIGITS_IN_LETTERS = [
+			'one',
+			'two',
+			'three',
+			'four',
+			'five',
+			'six',
+			'seven',
+			'eight',
+			'nine'
+		]
 
-function sumOfFirstAndLastDigitOrLetterDigitInString(inputString) {
-	const charArray = inputString.split('')
-	const isNumber = string => parseInt(string, 10)
+		function sumOfFirstAndLastDigitOrLetterDigitInString(inputString) {
+			const charArray = inputString.split('')
+			const isNumber = string => parseInt(string, 10)
 
-	const firstAndLastDigitsOrLetterDigits = DIGITS_IN_LETTERS.reduce((acc, digit, index) => {
-		const indexOfLetterDigit = inputString.indexOf(digit)
-		const lastIndexOfLetterDigit = inputString.lastIndexOf(digit)
-		return indexOfLetterDigit === -1
-		? acc
-		: [
-		    acc[0].index === -1 || indexOfLetterDigit < acc[0].index ? { index: indexOfLetterDigit, digit: index + 1 } : acc[0],
-		    acc[1].index === -1 || lastIndexOfLetterDigit > acc[1].index ? { index: lastIndexOfLetterDigit, digit: index + 1 } : acc[1]
-		  ]
-	}, [
-		{ index: charArray.findIndex(isNumber), digit: parseInt(charArray.find(isNumber)) },
-		{ index: charArray.findLastIndex(isNumber), digit: parseInt(charArray.findLast(isNumber)) }
-	])
+			const firstAndLastDigitsOrLetterDigits = DIGITS_IN_LETTERS.reduce((acc, digit, index) => {
+				const indexOfLetterDigit = inputString.indexOf(digit)
+				const lastIndexOfLetterDigit = inputString.lastIndexOf(digit)
+				return indexOfLetterDigit === -1
+					? acc
+					: [
+						acc[0].index === -1 || indexOfLetterDigit < acc[0].index ? { index: indexOfLetterDigit, digit: index + 1 } : acc[0],
+						acc[1].index === -1 || lastIndexOfLetterDigit > acc[1].index ? { index: lastIndexOfLetterDigit, digit: index + 1 } : acc[1]
+					]
+			}, [
+				{ index: charArray.findIndex(isNumber), digit: parseInt(charArray.find(isNumber)) },
+				{ index: charArray.findLastIndex(isNumber), digit: parseInt(charArray.findLast(isNumber)) }
+			])
 
-	return firstAndLastDigitsOrLetterDigits[0].digit * 10 + firstAndLastDigitsOrLetterDigits[1].digit
-}
+			return firstAndLastDigitsOrLetterDigits[0].digit * 10 + firstAndLastDigitsOrLetterDigits[1].digit
+		}
 
-function sumOfFirstAndLastDigitInString(inputString) {
-	const charArray = inputString.split('')
-	const isNumber = string => parseInt(string, 10)
-	const firstNumber = parseInt(charArray.find(isNumber)) || 0
-	const secondNumber = parseInt(charArray.findLast(isNumber)) || 0
-	return firstNumber * 10 + secondNumber
-}
+		function sumOfFirstAndLastDigitInString(inputString) {
+			const charArray = inputString.split('')
+			const isNumber = string => parseInt(string, 10)
+			const firstNumber = parseInt(charArray.find(isNumber)) || 0
+			const secondNumber = parseInt(charArray.findLast(isNumber)) || 0
+			return firstNumber * 10 + secondNumber
+		}
 
-function handleFileContent(lines) {
-	console.log('part1', lines.reduce((acc, current) => acc + sumOfFirstAndLastDigitInString(current), 0))
-	console.log('part2', lines.reduce((acc, current) => acc + sumOfFirstAndLastDigitOrLetterDigitInString(current), 0))
-}
+		function handleFileContent(lines) {
+			console.log('part1', lines.reduce((acc, current) => acc + sumOfFirstAndLastDigitInString(current), 0))
+			console.log('part2', lines.reduce((acc, current) => acc + sumOfFirstAndLastDigitOrLetterDigitInString(current), 0))
+		}
 
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

@@ -1,93 +1,96 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const MAXIMUM_STACK_SIZE = 7000
-const EFFICIENT_STACK_SIZE_PART_2 = 200
+		const MAXIMUM_STACK_SIZE = 7000
+		const EFFICIENT_STACK_SIZE_PART_2 = 200
 
-const smallestMultiple = numbers => {
-	numbers.sort((a, b) => b - a)
-	let howManyTimesTheLargerNumber = 1
-	while (numbers.some(number => (numbers[0] * howManyTimesTheLargerNumber) % number !== 0)) {
-		howManyTimesTheLargerNumber++
-	}
-	return numbers[0] * howManyTimesTheLargerNumber
-}
-
-const handleFileContent = lines => {
-	const instructions = lines[0].split('')
-
-	const nodes = lines.slice(2).map(line => {
-		const [ nodeId, leftAndRight ] = line.split(' = ')
-		const [ L, R ] = leftAndRight.slice(1, 9).split(', ')
-		return { nodeId, L, R }
-	})
-	
-	const goToNode = (node, slicedInstructions, numberOfSteps) => {
-		if (node.nodeId === 'ZZZ') return numberOfSteps
-		if (numberOfSteps % MAXIMUM_STACK_SIZE === 0) {
-			return [ // workaround : reset stack and restart
-				nodes.find(nextNode => nextNode.nodeId === node[slicedInstructions[0]]),
-				slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
-				numberOfSteps + 1
-			]
-		}
-		return goToNode(
-			nodes.find(nextNode => nextNode.nodeId === node[slicedInstructions[0]]),
-			slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
-			numberOfSteps + 1
-		)
-	}
-
-	const ghostToNode = (currentNodes, slicedInstructions, numberOfSteps, stepsReachingZ) => {
-		currentNodes.forEach((currentNode, index) => {
-			if (currentNode.nodeId[2] === 'Z') {
-				stepsReachingZ[index].push(numberOfSteps)
+		const smallestMultiple = numbers => {
+			numbers.sort((a, b) => b - a)
+			let howManyTimesTheLargerNumber = 1
+			while (numbers.some(number => (numbers[0] * howManyTimesTheLargerNumber) % number !== 0)) {
+				howManyTimesTheLargerNumber++
 			}
-		})
-		if (stepsReachingZ.every(stepsReachingZForNumber => stepsReachingZForNumber.length > 0)) {
-			return stepsReachingZ
+			return numbers[0] * howManyTimesTheLargerNumber
 		}
-		if (numberOfSteps % EFFICIENT_STACK_SIZE_PART_2 === 0) {
-			return [ // workaround : reset stack and restart
-				currentNodes.map(currentNode =>
-					nodes.find(nextNode => nextNode.nodeId === currentNode[slicedInstructions[0]])),
-				slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
-				numberOfSteps + 1,
-				stepsReachingZ
-			]
+
+		const handleFileContent = lines => {
+			const instructions = lines[0].split('')
+
+			const nodes = lines.slice(2).map(line => {
+				const [nodeId, leftAndRight] = line.split(' = ')
+				const [L, R] = leftAndRight.slice(1, 9).split(', ')
+				return { nodeId, L, R }
+			})
+
+			const goToNode = (node, slicedInstructions, numberOfSteps) => {
+				if (node.nodeId === 'ZZZ') return numberOfSteps
+				if (numberOfSteps % MAXIMUM_STACK_SIZE === 0) {
+					return [ // workaround : reset stack and restart
+						nodes.find(nextNode => nextNode.nodeId === node[slicedInstructions[0]]),
+						slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
+						numberOfSteps + 1
+					]
+				}
+				return goToNode(
+					nodes.find(nextNode => nextNode.nodeId === node[slicedInstructions[0]]),
+					slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
+					numberOfSteps + 1
+				)
+			}
+
+			const ghostToNode = (currentNodes, slicedInstructions, numberOfSteps, stepsReachingZ) => {
+				currentNodes.forEach((currentNode, index) => {
+					if (currentNode.nodeId[2] === 'Z') {
+						stepsReachingZ[index].push(numberOfSteps)
+					}
+				})
+				if (stepsReachingZ.every(stepsReachingZForNumber => stepsReachingZForNumber.length > 0)) {
+					return stepsReachingZ
+				}
+				if (numberOfSteps % EFFICIENT_STACK_SIZE_PART_2 === 0) {
+					return [ // workaround : reset stack and restart
+						currentNodes.map(currentNode =>
+							nodes.find(nextNode => nextNode.nodeId === currentNode[slicedInstructions[0]])),
+						slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
+						numberOfSteps + 1,
+						stepsReachingZ
+					]
+				}
+				return ghostToNode(
+					currentNodes.map(currentNode =>
+						nodes.find(nextNode => nextNode.nodeId === currentNode[slicedInstructions[0]])),
+					slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
+					numberOfSteps + 1,
+					stepsReachingZ
+				)
+			}
+
+			let answer = [nodes.find(node => node.nodeId === 'AAA'), instructions, 0]
+			do {
+				answer = goToNode(answer[0], answer[1], answer[2])
+			} while (Array.isArray(answer))
+
+			console.log('part1', answer)
+
+			const startingNodes = nodes.filter(node => node.nodeId[2] === 'A')
+			let answer2 = [startingNodes, instructions, 0, startingNodes.map((startingNode => []))]
+			do {
+				answer2 = ghostToNode(answer2[0], answer2[1], answer2[2], answer2[3])
+			} while (answer2.length === 4)
+
+			console.log('part2', smallestMultiple(answer2.flat()))
 		}
-		return ghostToNode(
-			currentNodes.map(currentNode =>
-				nodes.find(nextNode => nextNode.nodeId === currentNode[slicedInstructions[0]])),
-			slicedInstructions.length === 1 ? instructions : slicedInstructions.slice(1),
-			numberOfSteps + 1,
-			stepsReachingZ
-		)
-	}
 
-	let answer = [ nodes.find(node => node.nodeId === 'AAA'), instructions, 0 ]
-	do {
-		answer = goToNode(answer[0], answer[1], answer[2])
-	} while(Array.isArray(answer))
-
-	console.log('part1', answer)
-
-	const startingNodes = nodes.filter(node => node.nodeId[2] === 'A')
-	let answer2 = [ startingNodes, instructions, 0, startingNodes.map((startingNode => [] )) ]
-	do {
-		answer2 = ghostToNode(answer2[0], answer2[1], answer2[2], answer2[3])
-	} while(answer2.length === 4)
-
-	console.log('part2', smallestMultiple(answer2.flat()))
-}
-
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

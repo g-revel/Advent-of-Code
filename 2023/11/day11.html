@@ -1,47 +1,50 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
 
-const getShortestPathLengthBetweenTwoGalaxies = (galaxy1, galaxy2) => Math.abs(galaxy2[0] - galaxy1[0]) + Math.abs(galaxy2[1] - galaxy1[1])
+		const getShortestPathLengthBetweenTwoGalaxies = (galaxy1, galaxy2) => Math.abs(galaxy2[0] - galaxy1[0]) + Math.abs(galaxy2[1] - galaxy1[1])
 
-const getGalaxies = universe => universe.reduce((galaxies, line, yIndex) => [ ...galaxies, ...line.reduce((indexes, cell, xIndex) => cell === '#' ? [ ...indexes, [ yIndex, xIndex ] ] : indexes, []) ], [])
+		const getGalaxies = universe => universe.reduce((galaxies, line, yIndex) => [...galaxies, ...line.reduce((indexes, cell, xIndex) => cell === '#' ? [...indexes, [yIndex, xIndex]] : indexes, [])], [])
 
-const handleFileContent = lines => {
-	const mainData = lines.map(line => line.split(''))
+		const handleFileContent = lines => {
+			const mainData = lines.map(line => line.split(''))
 
-	const columnsWithoutGalaxies = Array.from({ length: mainData.length }, (_, i) => i ).reduce((columns, index) =>
-		mainData.some(line => line[index] === '#') ? columns : [ ...columns, index ]
-	, [])
+			const columnsWithoutGalaxies = Array.from({ length: mainData.length }, (_, i) => i).reduce((columns, index) =>
+				mainData.some(line => line[index] === '#') ? columns : [...columns, index]
+				, [])
 
-	const linesWithoutGalaxies = mainData.reduce((lines, line, index) => line.some(cell => cell === '#') ? lines : [ ...lines, index ], [])
+			const linesWithoutGalaxies = mainData.reduce((lines, line, index) => line.some(cell => cell === '#') ? lines : [...lines, index], [])
 
-	const expandedUniverseForPart1 = mainData.reduce((universe, line, lineIndex) => {
-		const lineWithEmptyColumnsDoubled = line.reduce((newLine, cell, index) => columnsWithoutGalaxies.includes(index) ? [ ...newLine, '.', '.' ] : [ ...newLine, cell ], [])
-		universe.push(lineWithEmptyColumnsDoubled)
-		if (linesWithoutGalaxies.includes(lineIndex)) universe.push(lineWithEmptyColumnsDoubled)
-		return universe
-	}, [])
-	
-	const getShortestPathLengthBetweenTwoGalaxiesInExpandedUniverse = (galaxy1, galaxy2) => {
-		const numberOfVerticalGaps = columnsWithoutGalaxies.filter(column => column < Math.max(galaxy1[1], galaxy2[1]) && column > Math.min(galaxy1[1], galaxy2[1])).length
-		const numberOfHorizontalGaps = linesWithoutGalaxies.filter(line => line < Math.max(galaxy1[0], galaxy2[0]) && line > Math.min(galaxy1[0], galaxy2[0])).length
-		return getShortestPathLengthBetweenTwoGalaxies(galaxy1, galaxy2) + ((numberOfVerticalGaps + numberOfHorizontalGaps) * 999999)
-	}
+			const expandedUniverseForPart1 = mainData.reduce((universe, line, lineIndex) => {
+				const lineWithEmptyColumnsDoubled = line.reduce((newLine, cell, index) => columnsWithoutGalaxies.includes(index) ? [...newLine, '.', '.'] : [...newLine, cell], [])
+				universe.push(lineWithEmptyColumnsDoubled)
+				if (linesWithoutGalaxies.includes(lineIndex)) universe.push(lineWithEmptyColumnsDoubled)
+				return universe
+			}, [])
 
-	const getSumOfPathsBetweenEveryPair = (galaxies, distanceFunction) => galaxies.reduce((sumOfPathsLengths, galaxy, index) =>
-	  sumOfPathsLengths + galaxies.slice(index + 1).reduce((sumOfPathsForThisGalaxy, nextGalaxy) => sumOfPathsForThisGalaxy + distanceFunction(galaxy, nextGalaxy), 0) , 0)
+			const getShortestPathLengthBetweenTwoGalaxiesInExpandedUniverse = (galaxy1, galaxy2) => {
+				const numberOfVerticalGaps = columnsWithoutGalaxies.filter(column => column < Math.max(galaxy1[1], galaxy2[1]) && column > Math.min(galaxy1[1], galaxy2[1])).length
+				const numberOfHorizontalGaps = linesWithoutGalaxies.filter(line => line < Math.max(galaxy1[0], galaxy2[0]) && line > Math.min(galaxy1[0], galaxy2[0])).length
+				return getShortestPathLengthBetweenTwoGalaxies(galaxy1, galaxy2) + ((numberOfVerticalGaps + numberOfHorizontalGaps) * 999999)
+			}
 
-	console.log('part1', getSumOfPathsBetweenEveryPair(getGalaxies(expandedUniverseForPart1), getShortestPathLengthBetweenTwoGalaxies))
-	console.log('part2', getSumOfPathsBetweenEveryPair(getGalaxies(mainData), getShortestPathLengthBetweenTwoGalaxiesInExpandedUniverse))
-}
+			const getSumOfPathsBetweenEveryPair = (galaxies, distanceFunction) => galaxies.reduce((sumOfPathsLengths, galaxy, index) =>
+				sumOfPathsLengths + galaxies.slice(index + 1).reduce((sumOfPathsForThisGalaxy, nextGalaxy) => sumOfPathsForThisGalaxy + distanceFunction(galaxy, nextGalaxy), 0), 0)
 
-</script>
-<script src="../openingFile.js"></script>
+			console.log('part1', getSumOfPathsBetweenEveryPair(getGalaxies(expandedUniverseForPart1), getShortestPathLengthBetweenTwoGalaxies))
+			console.log('part2', getSumOfPathsBetweenEveryPair(getGalaxies(mainData), getShortestPathLengthBetweenTwoGalaxiesInExpandedUniverse))
+		}
+
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

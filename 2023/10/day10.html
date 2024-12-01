@@ -1,116 +1,119 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const SYMBOLS = {
-	'|': { north: true, south: true },
-	'-': { west: true, east: true },
-	'L': { north: true, east: true },
-	'J': { north: true, west: true },
-	'7': { west: true, south: true },
-	'F': { south: true, east: true },
-	'S': { west: true, south: true, x: 103, y: 20 }
-}
-
-const oppositeOf = direction => direction === 'north' ? 'south' : direction === 'south' ? 'north' : direction === 'west' ? 'east' : 'west'
-
-const handleFileContent = lines => {
-	const mainData = lines.map(line => line.split(''))
-
-	const getDistanceToFurthestPoint = (x, y) => {
-		let count = 0
-		let currentCell = { x, y }
-		let nextDirection = 'north'
-		
-		do {
-			count++
-			const directionsOfCurrentCell = Object.keys(SYMBOLS[mainData[currentCell.y][currentCell.x]])
-			nextDirection = directionsOfCurrentCell[0] === oppositeOf(nextDirection) ? directionsOfCurrentCell[1] : directionsOfCurrentCell[0]
-			switch(nextDirection) {
-				case 'north': currentCell.y = currentCell.y - 1; break;
-				case 'south': currentCell.y = currentCell.y + 1; break;
-				case 'west': currentCell.x = currentCell.x - 1; break;
-				case 'east': currentCell.x = currentCell.x + 1; break;
-			}
-		} while(currentCell.x !== x || currentCell.y !== y)
-
-		return Math.floor(count / 2)
-	}
-
-	const numberOfHorizontalLinesAtEdgesOfWalls = (xWall1, xWall2, yWalls) => {
-		let i = 0
-		let j = 0
-
-		if (SYMBOLS[mainData[yWalls][xWall1]].east) {
-			i++
-			while (mainData[yWalls][xWall1 + i] === '-') {
-				i++
-			}
-			if (xWall1 + i === xWall2) {
-				return i - 1
-			}
-			if ((mainData[yWalls][xWall1 + i] === 'J' || mainData[yWalls][xWall1 + i] === '7' || mainData[yWalls][xWall1 + i] === 'S')) i++
+		const SYMBOLS = {
+			'|': { north: true, south: true },
+			'-': { west: true, east: true },
+			'L': { north: true, east: true },
+			'J': { north: true, west: true },
+			'7': { west: true, south: true },
+			'F': { south: true, east: true },
+			'S': { west: true, south: true, x: 103, y: 20 }
 		}
-		if (SYMBOLS[mainData[yWalls][xWall2]].west) {
-			if (xWall1 + i !== xWall2) {
-				j++
-				while (mainData[yWalls][xWall2 - j] === '-') {
-					j++
+
+		const oppositeOf = direction => direction === 'north' ? 'south' : direction === 'south' ? 'north' : direction === 'west' ? 'east' : 'west'
+
+		const handleFileContent = lines => {
+			const mainData = lines.map(line => line.split(''))
+
+			const getDistanceToFurthestPoint = (x, y) => {
+				let count = 0
+				let currentCell = { x, y }
+				let nextDirection = 'north'
+
+				do {
+					count++
+					const directionsOfCurrentCell = Object.keys(SYMBOLS[mainData[currentCell.y][currentCell.x]])
+					nextDirection = directionsOfCurrentCell[0] === oppositeOf(nextDirection) ? directionsOfCurrentCell[1] : directionsOfCurrentCell[0]
+					switch (nextDirection) {
+						case 'north': currentCell.y = currentCell.y - 1; break;
+						case 'south': currentCell.y = currentCell.y + 1; break;
+						case 'west': currentCell.x = currentCell.x - 1; break;
+						case 'east': currentCell.x = currentCell.x + 1; break;
+					}
+				} while (currentCell.x !== x || currentCell.y !== y)
+
+				return Math.floor(count / 2)
+			}
+
+			const numberOfHorizontalLinesAtEdgesOfWalls = (xWall1, xWall2, yWalls) => {
+				let i = 0
+				let j = 0
+
+				if (SYMBOLS[mainData[yWalls][xWall1]].east) {
+					i++
+					while (mainData[yWalls][xWall1 + i] === '-') {
+						i++
+					}
+					if (xWall1 + i === xWall2) {
+						return i - 1
+					}
+					if ((mainData[yWalls][xWall1 + i] === 'J' || mainData[yWalls][xWall1 + i] === '7' || mainData[yWalls][xWall1 + i] === 'S')) i++
 				}
-				if (mainData[yWalls][xWall2 - j] === 'L' || mainData[yWalls][xWall2 - j] === 'F') j++ 
+				if (SYMBOLS[mainData[yWalls][xWall2]].west) {
+					if (xWall1 + i !== xWall2) {
+						j++
+						while (mainData[yWalls][xWall2 - j] === '-') {
+							j++
+						}
+						if (mainData[yWalls][xWall2 - j] === 'L' || mainData[yWalls][xWall2 - j] === 'F') j++
+					}
+				}
+
+				return Math.max(0, i - 1) + Math.max(0, j - 1)
 			}
+
+			const numberOfTilesInside = (walls, yOfWalls) => {
+				walls.sort((a, b) => a - b)
+				return walls.reduce((number, wallNumber, index) => index % 2 === 0 ? number : number + wallNumber - walls[index - 1] - 1 - numberOfHorizontalLinesAtEdgesOfWalls(walls[index - 1], wallNumber, yOfWalls), 0)
+			}
+
+			const getAreaInside = (x, y) => {
+				let count = 0
+				let currentCell = { x, y }
+				let nextDirection = 'north'
+
+				const verticalWalls = JSON.parse(JSON.stringify(Array(mainData.length).fill([])))
+
+				shouldAddWall = (symbol, comingFrom, lastWallAdded) =>
+					symbol === '|'
+					|| (symbol === 'L' && (comingFrom === 'north' || lastWallAdded === 'J'))
+					|| (symbol === 'J' && (comingFrom === 'north' || lastWallAdded === 'L'))
+					|| (symbol === '7' && (comingFrom === 'south' || lastWallAdded === 'F'))
+					|| (symbol === 'F' && (comingFrom === 'south' || lastWallAdded === '7' || lastWallAdded === 'S'))
+					|| symbol === 'S'
+
+				do {
+					if (shouldAddWall(mainData[currentCell.y][currentCell.x], oppositeOf(nextDirection), mainData[currentCell.y][verticalWalls[currentCell.y][verticalWalls[currentCell.y].length - 1]])) {
+						verticalWalls[currentCell.y].push(currentCell.x)
+					}
+					const directionsOfCurrentCell = Object.keys(SYMBOLS[mainData[currentCell.y][currentCell.x]])
+					nextDirection = directionsOfCurrentCell[0] === oppositeOf(nextDirection) ? directionsOfCurrentCell[1] : directionsOfCurrentCell[0]
+					switch (nextDirection) {
+						case 'north': currentCell.y = currentCell.y - 1; break;
+						case 'south': currentCell.y = currentCell.y + 1; break;
+						case 'west': currentCell.x = currentCell.x - 1; break;
+						case 'east': currentCell.x = currentCell.x + 1; break;
+					}
+				} while (currentCell.x !== x || currentCell.y !== y)
+
+				return verticalWalls.reduce((area, wallsOnLine, index) => area + numberOfTilesInside(wallsOnLine, index), 0)
+			}
+
+			console.log('part1', getDistanceToFurthestPoint(SYMBOLS['S'].x, SYMBOLS['S'].y))
+			console.log('part2', getAreaInside(SYMBOLS['S'].x, SYMBOLS['S'].y))
 		}
 
-		return Math.max(0, i - 1) + Math.max(0, j - 1)
-	}
-
-	const numberOfTilesInside = (walls, yOfWalls) => {
-		walls.sort((a, b) => a - b)
-		return walls.reduce((number, wallNumber, index) => index % 2 === 0 ? number : number + wallNumber - walls[index - 1] - 1 - numberOfHorizontalLinesAtEdgesOfWalls(walls[index - 1], wallNumber, yOfWalls), 0)
-	}
-
-	const getAreaInside = (x, y) => {
-		let count = 0
-		let currentCell = { x, y }
-		let nextDirection = 'north'
-
-		const verticalWalls = JSON.parse(JSON.stringify(Array(mainData.length).fill([])))
-
-		shouldAddWall = (symbol, comingFrom, lastWallAdded) =>
-			symbol === '|'
-			|| (symbol === 'L' && (comingFrom === 'north' || lastWallAdded === 'J'))
-			|| (symbol === 'J' && (comingFrom === 'north' || lastWallAdded === 'L'))
-			|| (symbol === '7' && (comingFrom === 'south' || lastWallAdded === 'F'))
-			|| (symbol === 'F' && (comingFrom === 'south' || lastWallAdded === '7' || lastWallAdded === 'S'))
-			|| symbol === 'S'
-		
-		do {
-			if (shouldAddWall(mainData[currentCell.y][currentCell.x], oppositeOf(nextDirection), mainData[currentCell.y][verticalWalls[currentCell.y][verticalWalls[currentCell.y].length - 1]])) {
-				verticalWalls[currentCell.y].push(currentCell.x)	
-			}
-			const directionsOfCurrentCell = Object.keys(SYMBOLS[mainData[currentCell.y][currentCell.x]])
-			nextDirection = directionsOfCurrentCell[0] === oppositeOf(nextDirection) ? directionsOfCurrentCell[1] : directionsOfCurrentCell[0]
-			switch(nextDirection) {
-				case 'north': currentCell.y = currentCell.y - 1; break;
-				case 'south': currentCell.y = currentCell.y + 1; break;
-				case 'west': currentCell.x = currentCell.x - 1; break;
-				case 'east': currentCell.x = currentCell.x + 1; break;
-			}
-		} while(currentCell.x !== x || currentCell.y !== y)
-
-		return verticalWalls.reduce((area, wallsOnLine, index) => area + numberOfTilesInside(wallsOnLine, index), 0)
-	}
-
-	console.log('part1', getDistanceToFurthestPoint(SYMBOLS['S'].x, SYMBOLS['S'].y))
-	console.log('part2', getAreaInside(SYMBOLS['S'].x, SYMBOLS['S'].y))
-}
-
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

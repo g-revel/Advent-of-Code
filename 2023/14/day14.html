@@ -1,88 +1,91 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const getTotalLoad = tiltedPlatform => tiltedPlatform.reduce((acc, line, index) =>
-	acc + ((tiltedPlatform.length - index) * line.split('').filter(char => char === 'O').length), 0)
+		const getTotalLoad = tiltedPlatform => tiltedPlatform.reduce((acc, line, index) =>
+			acc + ((tiltedPlatform.length - index) * line.split('').filter(char => char === 'O').length), 0)
 
-const getReversedArray = array => array.map((_, index) => array[array.length - 1 - index])
+		const getReversedArray = array => array.map((_, index) => array[array.length - 1 - index])
 
-const transpose = doubleArray => doubleArray[0].split('').map((_, column) => doubleArray.map(row => row[column]).join(''))
+		const transpose = doubleArray => doubleArray[0].split('').map((_, column) => doubleArray.map(row => row[column]).join(''))
 
-const tiltPlatformWithDirection = (platform, direction) => {
-	switch(direction) {
-		case 'north': return transpose(tiltPlatform(transpose(platform)))
-		case 'south': return getReversedArray(transpose(tiltPlatform(transpose(getReversedArray(platform)))))
-		case 'west': return tiltPlatform(platform)
-		case 'east': return tiltPlatform(platform.map(line => getReversedArray(line.split('')).join('')))
-		  .map(line => getReversedArray(line.split('')).join(''))
-	}
-}
-
-const tiltPlatform = (platform, direction) =>
-	platform.map(line =>
-		line.split('').reduce((newLineStatus, char, index) => {
-			switch(char) {
-				case '.': return { ...newLineStatus, line: [ ...newLineStatus.line, '.' ] }
-				case '#': return { line: [ ...newLineStatus.line, '#' ], stop: index }
-				case 'O': newLineStatus.line[newLineStatus.stop + 1] = 'O'
-				return { line: index === newLineStatus.stop + 1 ? newLineStatus.line : [ ...newLineStatus.line,  '.' ], stop: newLineStatus.stop + 1 }
+		const tiltPlatformWithDirection = (platform, direction) => {
+			switch (direction) {
+				case 'north': return transpose(tiltPlatform(transpose(platform)))
+				case 'south': return getReversedArray(transpose(tiltPlatform(transpose(getReversedArray(platform)))))
+				case 'west': return tiltPlatform(platform)
+				case 'east': return tiltPlatform(platform.map(line => getReversedArray(line.split('')).join('')))
+					.map(line => getReversedArray(line.split('')).join(''))
 			}
-		}, { line: [], stop: -1 }).line.join('')
-	)
-
-const tiltOneCycle = platform => tiltPlatformWithDirection(
-	tiltPlatformWithDirection(
-		tiltPlatformWithDirection(
-			tiltPlatformWithDirection(
-				platform,
-				'north'
-			),
-			'west'
-		),
-		'south'
-	),
-	'east'
-)
-
-const tiltXCycles = (platform, x) => {
-	let tilted = platform
-	let count = 0
-	const allFirstLines = []
-	const cycles = {}
-	let cyclesCompleted = false
-
-	while (!cyclesCompleted) {
-		tilted = tiltOneCycle(tilted)
-
-		const indexOf = allFirstLines.indexOf(JSON.stringify(tilted))
-		if (indexOf !== -1) {
-			if (cycles[indexOf]) {
-				cyclesCompleted = true
-			} else {
-				cycles[indexOf] = count
-			}
-		} else {
-			allFirstLines.push(JSON.stringify(tilted))
 		}
-		count++
-	}
 
-	const keys = Object.keys(cycles)
-	return JSON.parse(allFirstLines[(x - parseInt(keys[0], 10)) % keys.length + parseInt(keys[0], 10) - 1])
-}
+		const tiltPlatform = (platform, direction) =>
+			platform.map(line =>
+				line.split('').reduce((newLineStatus, char, index) => {
+					switch (char) {
+						case '.': return { ...newLineStatus, line: [...newLineStatus.line, '.'] }
+						case '#': return { line: [...newLineStatus.line, '#'], stop: index }
+						case 'O': newLineStatus.line[newLineStatus.stop + 1] = 'O'
+							return { line: index === newLineStatus.stop + 1 ? newLineStatus.line : [...newLineStatus.line, '.'], stop: newLineStatus.stop + 1 }
+					}
+				}, { line: [], stop: -1 }).line.join('')
+			)
 
-const handleFileContent = lines => {
-	console.log('part1', getTotalLoad(tiltPlatformWithDirection(lines, 'north')))
-	console.log('part2', getTotalLoad(tiltXCycles(lines, 1000000000)))
-}
+		const tiltOneCycle = platform => tiltPlatformWithDirection(
+			tiltPlatformWithDirection(
+				tiltPlatformWithDirection(
+					tiltPlatformWithDirection(
+						platform,
+						'north'
+					),
+					'west'
+				),
+				'south'
+			),
+			'east'
+		)
 
-</script>
-<script src="../openingFile.js"></script>
+		const tiltXCycles = (platform, x) => {
+			let tilted = platform
+			let count = 0
+			const allFirstLines = []
+			const cycles = {}
+			let cyclesCompleted = false
+
+			while (!cyclesCompleted) {
+				tilted = tiltOneCycle(tilted)
+
+				const indexOf = allFirstLines.indexOf(JSON.stringify(tilted))
+				if (indexOf !== -1) {
+					if (cycles[indexOf]) {
+						cyclesCompleted = true
+					} else {
+						cycles[indexOf] = count
+					}
+				} else {
+					allFirstLines.push(JSON.stringify(tilted))
+				}
+				count++
+			}
+
+			const keys = Object.keys(cycles)
+			return JSON.parse(allFirstLines[(x - parseInt(keys[0], 10)) % keys.length + parseInt(keys[0], 10) - 1])
+		}
+
+		const handleFileContent = lines => {
+			console.log('part1', getTotalLoad(tiltPlatformWithDirection(lines, 'north')))
+			console.log('part2', getTotalLoad(tiltXCycles(lines, 1000000000)))
+		}
+
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

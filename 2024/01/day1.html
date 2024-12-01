@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+    const parseLine = line => line.split(' ').filter(splittedLine => splittedLine !== '').map(splittedLine => parseInt(splittedLine, 10))
+
+    const getSortedColumns = rows => {
+      const columns = []
+      columns.push(rows.map(row => row[0]))
+      columns.push(rows.map(row => row[1]))
+      columns.forEach(column => {
+        column.sort()
+      })
+      return columns
+    }
+
+    const getTotalDistance = columns =>
+      columns[0].reduce((total, number, i) => total + (Math.abs(number - columns[1][i])), 0)
+
+    const getNumberOfOccurencesInArray = (array, pattern) =>
+      array.filter(element => element === pattern).length
+
+    const getSimilarityScore = columns =>
+      columns[0].reduce((total, number, i) => total + (getNumberOfOccurencesInArray(columns[1], number) * number), 0)
+
+    const handleFileContent = lines => {
+      const rows = lines.map(parseLine)
+      const columns = getSortedColumns(rows)
+      console.log('part 1', getTotalDistance(columns))
+      console.log('part 2', getSimilarityScore(columns))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>

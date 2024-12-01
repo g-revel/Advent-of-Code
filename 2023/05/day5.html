@@ -1,123 +1,128 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-// Part 1
-const mapElements = (elements, map) =>
-	elements.map((element, index) => {
-		let elementValue = element
-		map.forEach(mapLine => {
-			const [ destination, source, range ] = mapLine
-			if (element >= source && element <= (source + range)) {
-				elementValue = (element - source) + destination
+		// Part 1
+		const mapElements = (elements, map) =>
+			elements.map((element, index) => {
+				let elementValue = element
+				map.forEach(mapLine => {
+					const [destination, source, range] = mapLine
+					if (element >= source && element <= (source + range)) {
+						elementValue = (element - source) + destination
+					}
+				})
+				return elementValue
+			})
+
+		const intersectionOfInterval = (interval1, interval2) => {
+			if (interval1[0] > interval2[1] || interval1[1] < interval2[0]) {
+				return { toMap: -1 }
 			}
-		})
-		return elementValue
-	})
-
-const intersectionOfInterval = (interval1, interval2) => {
-	if (interval1[0] > interval2[1] || interval1[1] < interval2[0]) {
-		return { toMap: -1 }
-	}
-	if (interval1[0] >= interval2[0] && interval1[1] <= interval2[1]) {
-		return { toMap: -2 }
-	}
-	if (interval1[0] <= interval2[0] && interval1[1] <= interval2[1]) {
-		return { array: [ [ interval1[0], interval2[0] - 1 ], [ interval2[0], interval1[1] ] ], toMap: 1 }
-	}
-	if (interval1[0] >= interval2[0] && interval1[1] >= interval2[1]) {
-		return { array: [ [ interval1[0], interval2[1] ], [ interval2[1] + 1, interval1[1] ] ], toMap: 0 }
-	}
-	if (interval1[0] < interval2[0] && interval1[1] > interval2[1]) {
-		return { array: [
-			[ interval1[0], interval2[0] - 1 ],
-			[ interval2[0], interval2[1] ],
-			[ interval2[1] + 1, interval1[1] ]
-		], toMap: 1 }
-	}
-}
-
-const fragmentElementFromMapLine = (element, mapLine, mappers) => {
-	const [ destination, source, range ] = mapLine
-	const intersection = intersectionOfInterval(element, [ source, source + range - 1 ])
-
-	if (intersection.toMap === -1) {
-		return [ element ]
-	}
-	if (intersection.toMap === -2) {
-		mappers.push({
-			toMap: [ element[0], element[1] ],
-			mapped: [ element[0] - source + destination, element[1] - source + destination ]
-		})
-		return [ element ]
-	}
-	mappers.push({
-		toMap: intersection.array[intersection.toMap],
-		mapped: [
-			intersection.array[intersection.toMap][0] - source + destination,
-			intersection.array[intersection.toMap][1] - source + destination
-		]
-	})
-	return intersection.array
-}
-
-const mapElementsWithMapLine = (elements, mapLine, mappers) => elements.reduce((acc, element) =>
-	[ ...acc, ...fragmentElementFromMapLine(element, mapLine, mappers) ], [])
-
-const mapElementsPart2 = (elements, map) => {
-	const mappers = []
-	let mappedElements = elements
-
-	map.forEach(mapLine => {
-		mappedElements = mapElementsWithMapLine(mappedElements, mapLine, mappers)
-	})
-
-	mappers.forEach(mapper => {
-		mappedElements[mappedElements.findIndex(mappedElement => mappedElement[0] === mapper.toMap[0] && mappedElement[1] === mapper.toMap[1])] = mapper.mapped
-	})
-
-	return mappedElements
-}
-
-const getAllMappedValues = (mappedValues, allMappers, mappingKey, part2) => {
-	const [ currentElement, nextElement ] = mappingKey.split('-to-')
-
-	const valuesForNextElement = part2
-		? mapElementsPart2(mappedValues[`${currentElement}s`], allMappers[mappingKey])
-		: mapElements(mappedValues[`${currentElement}s`], allMappers[mappingKey])
-
-	mappedValues = { ...mappedValues, [`${nextElement}s`]: valuesForNextElement }
-
-	const nextMappingKey = Object.keys(allMappers).find(mapper => mapper.includes(`${nextElement}-to-`))
-	return nextMappingKey ? getAllMappedValues(mappedValues, allMappers, nextMappingKey, part2) : mappedValues
-}
-
-const getSeedsForPartTwo = rangesOfSeeds => rangesOfSeeds.reduce((newSeeds, rangeOfSeeds, index) => index % 2 === 0 ? [ ...newSeeds, [ rangeOfSeeds, rangeOfSeeds + rangesOfSeeds[index + 1] - 1 ] ] : newSeeds, [])
-
-const handleFileContent = lines => {
-	const seeds = lines[0].split(':')[1].split(' ').slice(1).map(number => parseInt(number, 10))
-	const seedsForPartTwo = getSeedsForPartTwo(seeds)
-
-	const mainData = lines.slice(1).reduce((allMappers, currentLine) => {
-		if (currentLine === "") return allMappers
-		if (currentLine.includes(' map')) {
-			const currentMapToFill = currentLine.split(' map')[0]
-			return { ...allMappers, [currentMapToFill]: [], currentMapToFill }
+			if (interval1[0] >= interval2[0] && interval1[1] <= interval2[1]) {
+				return { toMap: -2 }
+			}
+			if (interval1[0] <= interval2[0] && interval1[1] <= interval2[1]) {
+				return { array: [[interval1[0], interval2[0] - 1], [interval2[0], interval1[1]]], toMap: 1 }
+			}
+			if (interval1[0] >= interval2[0] && interval1[1] >= interval2[1]) {
+				return { array: [[interval1[0], interval2[1]], [interval2[1] + 1, interval1[1]]], toMap: 0 }
+			}
+			if (interval1[0] < interval2[0] && interval1[1] > interval2[1]) {
+				return {
+					array: [
+						[interval1[0], interval2[0] - 1],
+						[interval2[0], interval2[1]],
+						[interval2[1] + 1, interval1[1]]
+					], toMap: 1
+				}
+			}
 		}
-		const currentMapToFill = allMappers.currentMapToFill
-		return { ...allMappers, [currentMapToFill]: [ ...allMappers[currentMapToFill], currentLine.split(' ').map(number => parseInt(number, 10)) ] }
-	}, {})
 
-	console.log('part1' , Math.min(...Object.values(getAllMappedValues({ seeds }, mainData, 'seed-to-soil').locations)))
-	console.log('part2' , Math.min(...(getAllMappedValues({ seeds: seedsForPartTwo }, mainData, 'seed-to-soil', true).locations).flat(Infinity)))
-}
+		const fragmentElementFromMapLine = (element, mapLine, mappers) => {
+			const [destination, source, range] = mapLine
+			const intersection = intersectionOfInterval(element, [source, source + range - 1])
 
-</script>
-<script src="../openingFile.js"></script>
+			if (intersection.toMap === -1) {
+				return [element]
+			}
+			if (intersection.toMap === -2) {
+				mappers.push({
+					toMap: [element[0], element[1]],
+					mapped: [element[0] - source + destination, element[1] - source + destination]
+				})
+				return [element]
+			}
+			mappers.push({
+				toMap: intersection.array[intersection.toMap],
+				mapped: [
+					intersection.array[intersection.toMap][0] - source + destination,
+					intersection.array[intersection.toMap][1] - source + destination
+				]
+			})
+			return intersection.array
+		}
+
+		const mapElementsWithMapLine = (elements, mapLine, mappers) => elements.reduce((acc, element) =>
+			[...acc, ...fragmentElementFromMapLine(element, mapLine, mappers)], [])
+
+		const mapElementsPart2 = (elements, map) => {
+			const mappers = []
+			let mappedElements = elements
+
+			map.forEach(mapLine => {
+				mappedElements = mapElementsWithMapLine(mappedElements, mapLine, mappers)
+			})
+
+			mappers.forEach(mapper => {
+				mappedElements[mappedElements.findIndex(mappedElement => mappedElement[0] === mapper.toMap[0] && mappedElement[1] === mapper.toMap[1])] = mapper.mapped
+			})
+
+			return mappedElements
+		}
+
+		const getAllMappedValues = (mappedValues, allMappers, mappingKey, part2) => {
+			const [currentElement, nextElement] = mappingKey.split('-to-')
+
+			const valuesForNextElement = part2
+				? mapElementsPart2(mappedValues[`${currentElement}s`], allMappers[mappingKey])
+				: mapElements(mappedValues[`${currentElement}s`], allMappers[mappingKey])
+
+			mappedValues = { ...mappedValues, [`${nextElement}s`]: valuesForNextElement }
+
+			const nextMappingKey = Object.keys(allMappers).find(mapper => mapper.includes(`${nextElement}-to-`))
+			return nextMappingKey ? getAllMappedValues(mappedValues, allMappers, nextMappingKey, part2) : mappedValues
+		}
+
+		const getSeedsForPartTwo = rangesOfSeeds => rangesOfSeeds.reduce((newSeeds, rangeOfSeeds, index) => index % 2 === 0 ? [...newSeeds, [rangeOfSeeds, rangeOfSeeds + rangesOfSeeds[index + 1] - 1]] : newSeeds, [])
+
+		const handleFileContent = lines => {
+			const seeds = lines[0].split(':')[1].split(' ').slice(1).map(number => parseInt(number, 10))
+			const seedsForPartTwo = getSeedsForPartTwo(seeds)
+
+			const mainData = lines.slice(1).reduce((allMappers, currentLine) => {
+				if (currentLine === "") return allMappers
+				if (currentLine.includes(' map')) {
+					const currentMapToFill = currentLine.split(' map')[0]
+					return { ...allMappers, [currentMapToFill]: [], currentMapToFill }
+				}
+				const currentMapToFill = allMappers.currentMapToFill
+				return { ...allMappers, [currentMapToFill]: [...allMappers[currentMapToFill], currentLine.split(' ').map(number => parseInt(number, 10))] }
+			}, {})
+
+			console.log('part1', Math.min(...Object.values(getAllMappedValues({ seeds }, mainData, 'seed-to-soil').locations)))
+			console.log('part2', Math.min(...(getAllMappedValues({ seeds: seedsForPartTwo }, mainData, 'seed-to-soil', true).locations).flat(Infinity)))
+		}
+
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

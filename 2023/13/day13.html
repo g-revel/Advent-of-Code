@@ -1,124 +1,127 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const areLinesAlmostIdentical = (line1, line2) =>
-	line1.split('').filter((char1, index) => char1 !== line2[index]).length === 1
+		const areLinesAlmostIdentical = (line1, line2) =>
+			line1.split('').filter((char1, index) => char1 !== line2[index]).length === 1
 
-const getConsecutiveAlmostIdenticalLinesOnPattern = pattern =>
-	pattern.slice(1).reduce((indenticalLines, patternLine, index) => areLinesAlmostIdentical(patternLine, pattern[index])
-		? [ ...indenticalLines, index ] : indenticalLines, [])
+		const getConsecutiveAlmostIdenticalLinesOnPattern = pattern =>
+			pattern.slice(1).reduce((indenticalLines, patternLine, index) => areLinesAlmostIdentical(patternLine, pattern[index])
+				? [...indenticalLines, index] : indenticalLines, [])
 
-const getConsecutiveIdenticalLinesOnPattern = pattern =>
-	pattern.slice(1).reduce((indenticalLines, patternLine, index) => patternLine === pattern[index]
-		? [ ...indenticalLines, index ] : indenticalLines, [])
+		const getConsecutiveIdenticalLinesOnPattern = pattern =>
+			pattern.slice(1).reduce((indenticalLines, patternLine, index) => patternLine === pattern[index]
+				? [...indenticalLines, index] : indenticalLines, [])
 
-const transpose = doubleArray => doubleArray[0].split('').map((_, column) => doubleArray.map(row => row[column]).join(''))
+		const transpose = doubleArray => doubleArray[0].split('').map((_, column) => doubleArray.map(row => row[column]).join(''))
 
-const isLineOfReflection = (pattern, index) => {
-	let shift = 1
-	while (pattern[index - shift] && pattern[index + 1 + shift]) {
-		if (pattern[index - shift] !== pattern[index + 1 + shift]) return false
-		shift++
-	}
-	return true
-}
-
-const isAlmostLineOfReflection = (pattern, index) => {
-	let shift = 1
-	let smudge = false
-	while (pattern[index - shift] && pattern[index + 1 + shift]) {
-		if (pattern[index - shift] !== pattern[index + 1 + shift]) {
-			if (smudge || !areLinesAlmostIdentical(pattern[index - shift], pattern[index + 1 + shift])) {
-				return false
-			} else {
-				smudge = true
+		const isLineOfReflection = (pattern, index) => {
+			let shift = 1
+			while (pattern[index - shift] && pattern[index + 1 + shift]) {
+				if (pattern[index - shift] !== pattern[index + 1 + shift]) return false
+				shift++
 			}
+			return true
 		}
-		shift++
-	}
-	return smudge
-}
 
-const getIndexOfReflectionRowAmongIdenticalLines = (pattern, indenticalLinesIndexes, original = -1) => {
-	let answer = -1
-	indenticalLinesIndexes.forEach(index => {
-		if (index !== original && isLineOfReflection(pattern, index)) answer = index
-	})
-	return answer
-}
-
-const getNewIndexOfReflectionRowAmongIdenticalLines = (pattern, indenticalLinesIndexes, original) => {
-	let answer = -1
-	indenticalLinesIndexes.forEach(index => {
-		if (index !== original && isAlmostLineOfReflection(pattern, index)) answer = index
-	})
-	return answer
-}
-
-const getNewIndexOfReflectionRow = (pattern, originalIndex, isHorizontal = false) => {
-	const almostIdenticalLines = getConsecutiveAlmostIdenticalLinesOnPattern(pattern)
-	const indexOfReflection = getIndexOfReflectionRowAmongIdenticalLines(
-		pattern,
-		almostIdenticalLines,
-		originalIndex.isHorizontal === isHorizontal ? originalIndex.index : -1
-	)
-
-	if (indexOfReflection === -1) {
-		const identicalLines = getConsecutiveIdenticalLinesOnPattern(pattern)
-		const newIndexOfReflection = getNewIndexOfReflectionRowAmongIdenticalLines(
-			pattern,
-			identicalLines,
-			originalIndex.isHorizontal === isHorizontal ? originalIndex.index : -1
-		)
-
-		if (newIndexOfReflection !== -1) {
-			return { isHorizontal, index: newIndexOfReflection }
+		const isAlmostLineOfReflection = (pattern, index) => {
+			let shift = 1
+			let smudge = false
+			while (pattern[index - shift] && pattern[index + 1 + shift]) {
+				if (pattern[index - shift] !== pattern[index + 1 + shift]) {
+					if (smudge || !areLinesAlmostIdentical(pattern[index - shift], pattern[index + 1 + shift])) {
+						return false
+					} else {
+						smudge = true
+					}
+				}
+				shift++
+			}
+			return smudge
 		}
-	}
 
-	return indexOfReflection === -1
-		? getNewIndexOfReflectionRow(transpose(pattern), originalIndex)
-		: { isHorizontal, index: indexOfReflection }
-}
+		const getIndexOfReflectionRowAmongIdenticalLines = (pattern, indenticalLinesIndexes, original = -1) => {
+			let answer = -1
+			indenticalLinesIndexes.forEach(index => {
+				if (index !== original && isLineOfReflection(pattern, index)) answer = index
+			})
+			return answer
+		}
 
-const getIndexOfReflectionRow = (pattern, isHorizontal = false) => {
-	const identicalLines = getConsecutiveIdenticalLinesOnPattern(pattern)
-	const indexOfReflection = getIndexOfReflectionRowAmongIdenticalLines(pattern, identicalLines)
+		const getNewIndexOfReflectionRowAmongIdenticalLines = (pattern, indenticalLinesIndexes, original) => {
+			let answer = -1
+			indenticalLinesIndexes.forEach(index => {
+				if (index !== original && isAlmostLineOfReflection(pattern, index)) answer = index
+			})
+			return answer
+		}
 
-	return indexOfReflection === -1
-		? getIndexOfReflectionRow(transpose(pattern))
-		: { isHorizontal, index: indexOfReflection }
-}
+		const getNewIndexOfReflectionRow = (pattern, originalIndex, isHorizontal = false) => {
+			const almostIdenticalLines = getConsecutiveAlmostIdenticalLinesOnPattern(pattern)
+			const indexOfReflection = getIndexOfReflectionRowAmongIdenticalLines(
+				pattern,
+				almostIdenticalLines,
+				originalIndex.isHorizontal === isHorizontal ? originalIndex.index : -1
+			)
 
-const scoreToAdd = (pattern, part2) => {
-	const indexOfReflection = getIndexOfReflectionRow(pattern, true)
-	const indexToUse = part2 ? getNewIndexOfReflectionRow(pattern, indexOfReflection, true) : indexOfReflection
+			if (indexOfReflection === -1) {
+				const identicalLines = getConsecutiveIdenticalLinesOnPattern(pattern)
+				const newIndexOfReflection = getNewIndexOfReflectionRowAmongIdenticalLines(
+					pattern,
+					identicalLines,
+					originalIndex.isHorizontal === isHorizontal ? originalIndex.index : -1
+				)
 
-	return indexToUse.isHorizontal ? 100 * (indexToUse.index + 1) : (indexToUse.index + 1)
-}
+				if (newIndexOfReflection !== -1) {
+					return { isHorizontal, index: newIndexOfReflection }
+				}
+			}
+
+			return indexOfReflection === -1
+				? getNewIndexOfReflectionRow(transpose(pattern), originalIndex)
+				: { isHorizontal, index: indexOfReflection }
+		}
+
+		const getIndexOfReflectionRow = (pattern, isHorizontal = false) => {
+			const identicalLines = getConsecutiveIdenticalLinesOnPattern(pattern)
+			const indexOfReflection = getIndexOfReflectionRowAmongIdenticalLines(pattern, identicalLines)
+
+			return indexOfReflection === -1
+				? getIndexOfReflectionRow(transpose(pattern))
+				: { isHorizontal, index: indexOfReflection }
+		}
+
+		const scoreToAdd = (pattern, part2) => {
+			const indexOfReflection = getIndexOfReflectionRow(pattern, true)
+			const indexToUse = part2 ? getNewIndexOfReflectionRow(pattern, indexOfReflection, true) : indexOfReflection
+
+			return indexToUse.isHorizontal ? 100 * (indexToUse.index + 1) : (indexToUse.index + 1)
+		}
 
 
-const handleFileContent = lines => {
-	const patterns = [ [] ]
-	let currentPatternToFill = 0
-	lines.forEach(line => {
-		if (line === '') {
-			currentPatternToFill++
-			patterns[currentPatternToFill] = []
-		} else patterns[currentPatternToFill].push(line)
-	})
+		const handleFileContent = lines => {
+			const patterns = [[]]
+			let currentPatternToFill = 0
+			lines.forEach(line => {
+				if (line === '') {
+					currentPatternToFill++
+					patterns[currentPatternToFill] = []
+				} else patterns[currentPatternToFill].push(line)
+			})
 
-	console.log('part1', patterns.reduce((acc, pattern) => acc + scoreToAdd(pattern), 0))
-	console.log('part2', patterns.reduce((acc, pattern) => acc + scoreToAdd(pattern, true), 0))
-}
+			console.log('part1', patterns.reduce((acc, pattern) => acc + scoreToAdd(pattern), 0))
+			console.log('part2', patterns.reduce((acc, pattern) => acc + scoreToAdd(pattern, true), 0))
+		}
 
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

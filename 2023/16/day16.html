@@ -1,84 +1,87 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const sendOneBeam = (allSymbols, x, y, direction, energizedCells, splittedBeams) => {
-	let beam = { x, y, direction }
-	let loop = false
+		const sendOneBeam = (allSymbols, x, y, direction, energizedCells, splittedBeams) => {
+			let beam = { x, y, direction }
+			let loop = false
 
-	while (beam.x >= 0 && beam.y >= 0 && beam.y < allSymbols.length && beam.x < allSymbols[0].length && !loop) {
-		energizedCells.add(beam.y * 1000 + beam.x)
-		switch(allSymbols[beam.y][beam.x]) {
-			case '\\': beam.direction = beam.direction === 'north' ? 'west' : beam.direction === 'west' ? 'north' : beam.direction === 'south' ? 'east' : 'south'; break;
-			case '/': beam.direction = beam.direction === 'north' ? 'east' : beam.direction === 'west' ? 'south' : beam.direction === 'south' ? 'west' : 'north'; break;
-			case '|': if (beam.direction === 'west' || beam.direction === 'east') {
-				beam.direction = 'north'
-				if (splittedBeams.has(beam.y * 1000 + beam.x)) {
-					loop = true
-				} else {
-					splittedBeams.add(beam.y * 1000 + beam.x)
-					sendOneBeam(allSymbols, beam.x, beam.y, 'south', energizedCells, splittedBeams)
+			while (beam.x >= 0 && beam.y >= 0 && beam.y < allSymbols.length && beam.x < allSymbols[0].length && !loop) {
+				energizedCells.add(beam.y * 1000 + beam.x)
+				switch (allSymbols[beam.y][beam.x]) {
+					case '\\': beam.direction = beam.direction === 'north' ? 'west' : beam.direction === 'west' ? 'north' : beam.direction === 'south' ? 'east' : 'south'; break;
+					case '/': beam.direction = beam.direction === 'north' ? 'east' : beam.direction === 'west' ? 'south' : beam.direction === 'south' ? 'west' : 'north'; break;
+					case '|': if (beam.direction === 'west' || beam.direction === 'east') {
+						beam.direction = 'north'
+						if (splittedBeams.has(beam.y * 1000 + beam.x)) {
+							loop = true
+						} else {
+							splittedBeams.add(beam.y * 1000 + beam.x)
+							sendOneBeam(allSymbols, beam.x, beam.y, 'south', energizedCells, splittedBeams)
+						}
+					}; break;
+					case '-': if (beam.direction === 'north' || beam.direction === 'south') {
+						beam.direction = 'west'
+						if (splittedBeams.has(beam.y * 1000 + beam.x)) {
+							loop = true
+						} else {
+							splittedBeams.add(beam.y * 1000 + beam.x)
+							sendOneBeam(allSymbols, beam.x, beam.y, 'east', energizedCells, splittedBeams)
+						}
+					}; break;
 				}
-			}; break;
-			case '-': if (beam.direction === 'north' || beam.direction === 'south') {
-				beam.direction = 'west'
-				if (splittedBeams.has(beam.y * 1000 + beam.x)) {
-					loop = true
-				} else {
-					splittedBeams.add(beam.y * 1000 + beam.x)
-					sendOneBeam(allSymbols, beam.x, beam.y, 'east', energizedCells, splittedBeams)	
+				switch (beam.direction) {
+					case 'north': beam.y--; break;
+					case 'south': beam.y++; break;
+					case 'west': beam.x--; break;
+					case 'east': beam.x++; break;
 				}
-			}; break;
+			}
 		}
-		switch(beam.direction) {
-			case 'north': beam.y--; break;
-			case 'south': beam.y++; break;
-			case 'west': beam.x--; break;
-			case 'east': beam.x++; break;
+
+		const sendOGBeam = (allSymbols, x, y, direction) => {
+			const energizedCells = new Set()
+			const splittedBeams = new Set()
+			sendOneBeam(allSymbols, x, y, direction, energizedCells, splittedBeams)
+			return energizedCells.size
 		}
-	}
-}
 
-const sendOGBeam = (allSymbols, x, y, direction) => {
-	const energizedCells = new Set()
-	const splittedBeams = new Set()
-	sendOneBeam(allSymbols, x, y, direction, energizedCells, splittedBeams)
-	return energizedCells.size
-}
+		const sendOptimalBeam = allSymbols => {
+			let mostEnergizedCells = 0
 
-const sendOptimalBeam = allSymbols => {
-	let mostEnergizedCells = 0
+			for (let i = 0; i < allSymbols.length; i++) {
+				mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, i, 0, 'south'))
+			}
 
-	for (let i=0; i<allSymbols.length; i++) {
-		mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, i, 0, 'south'))
-	}
+			for (let j = 0; j < allSymbols.length; j++) {
+				mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, j, allSymbols.length - 1, 'north'))
+			}
 
-	for (let j=0; j<allSymbols.length; j++) {
-		mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, j, allSymbols.length - 1, 'north'))
-	}
+			for (let k = 0; k < allSymbols[0].length; k++) {
+				mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, 0, k, 'east'))
+			}
 
-	for (let k=0; k<allSymbols[0].length; k++) {
-		mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, 0, k, 'east'))
-	}
+			for (let l = 0; l < allSymbols[0].length; l++) {
+				mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, allSymbols[0].length, l, 'west'))
+			}
 
-	for (let l=0; l<allSymbols[0].length; l++) {
-		mostEnergizedCells = Math.max(mostEnergizedCells, sendOGBeam(allSymbols, allSymbols[0].length, l, 'west'))
-	}
+			return mostEnergizedCells
+		}
 
-	return mostEnergizedCells
-}
- 
-const handleFileContent = lines => {
-	console.log('part1', sendOGBeam(lines.map(line => line.split('')), 0, 0, 'east'))
-	console.log('part2', sendOptimalBeam(lines.map(line => line.split(''))))
-}
+		const handleFileContent = lines => {
+			console.log('part1', sendOGBeam(lines.map(line => line.split('')), 0, 0, 'east'))
+			console.log('part2', sendOptimalBeam(lines.map(line => line.split(''))))
+		}
 
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>

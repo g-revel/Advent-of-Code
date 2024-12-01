@@ -1,43 +1,46 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title></title>
+  <title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
 
-function getGameData(game) {
-  const [ title, content ] = game.split(':')
-  const rounds = content.slice(1).split('; ')
+    function getGameData(game) {
+      const [title, content] = game.split(':')
+      const rounds = content.slice(1).split('; ')
 
-  const getColorInRound = (color, round) => {
-    const colorsInRound = round.split(', ').map(colorInRound => colorInRound.split(' '))
-    const colorQuantityAndName = colorsInRound.find(colorInRound => colorInRound[1] === color)
-    return colorQuantityAndName === undefined ? 0 : parseInt(colorQuantityAndName[0], 10)
-  }
+      const getColorInRound = (color, round) => {
+        const colorsInRound = round.split(', ').map(colorInRound => colorInRound.split(' '))
+        const colorQuantityAndName = colorsInRound.find(colorInRound => colorInRound[1] === color)
+        return colorQuantityAndName === undefined ? 0 : parseInt(colorQuantityAndName[0], 10)
+      }
 
-  return {
-    gameIndex: parseInt(title.split(' ')[1]),
-    blue: Math.max(...rounds.map(round => getColorInRound('blue', round))),
-    green: Math.max(...rounds.map(round => getColorInRound('green', round))),
-    red: Math.max(...rounds.map(round => getColorInRound('red', round)))
-  }
-}
+      return {
+        gameIndex: parseInt(title.split(' ')[1]),
+        blue: Math.max(...rounds.map(round => getColorInRound('blue', round))),
+        green: Math.max(...rounds.map(round => getColorInRound('green', round))),
+        red: Math.max(...rounds.map(round => getColorInRound('red', round)))
+      }
+    }
 
-function handleFileContent(lines) {
-	const mainData = lines.reduce((acc, current) => [ ...acc, getGameData(current)], [])
+    function handleFileContent(lines) {
+      const mainData = lines.reduce((acc, current) => [...acc, getGameData(current)], [])
 
-  const matchCriteriaOfRiddleOne = game => game.red <= 12 && game.green <= 13 && game.blue <= 14
+      const matchCriteriaOfRiddleOne = game => game.red <= 12 && game.green <= 13 && game.blue <= 14
 
-  const sumOfIdOfGamesThatAnswersRiddleOne = mainData.reduce((acc, current) => matchCriteriaOfRiddleOne(current) ? acc + current.gameIndex : acc, 0)
-  const powerOfAllSets = mainData.reduce((acc, current) => acc + current.red * current.green * current.blue, 0)
+      const sumOfIdOfGamesThatAnswersRiddleOne = mainData.reduce((acc, current) => matchCriteriaOfRiddleOne(current) ? acc + current.gameIndex : acc, 0)
+      const powerOfAllSets = mainData.reduce((acc, current) => acc + current.red * current.green * current.blue, 0)
 
-  console.log('part1', sumOfIdOfGamesThatAnswersRiddleOne)
-  console.log('part2', powerOfAllSets)
-}
+      console.log('part1', sumOfIdOfGamesThatAnswersRiddleOne)
+      console.log('part2', powerOfAllSets)
+    }
 
-</script>
-<script src="../openingFile.js"></script>
+  </script>
+  <script src="../../openingFile.js"></script>
 </body>
+
 </html>

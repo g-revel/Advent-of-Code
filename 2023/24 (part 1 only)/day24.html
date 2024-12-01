@@ -1,60 +1,63 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title></title>
 </head>
+
 <body>
-<input type="file" id="inputFichier" />
-<script type="text/javascript">
+	<input type="file" id="inputFichier" />
+	<script type="text/javascript">
 
-const getLinearFunction = line => ({ a: line.vY / line.vX, b: line.y - (line.vY / line.vX) * line.x })
+		const getLinearFunction = line => ({ a: line.vY / line.vX, b: line.y - (line.vY / line.vX) * line.x })
 
-const intersectionBetweenLinearFunctions = (funcA, funcB) => {
-	if (funcA.a - funcB.a === 0) {
-		return null
-	}
-	const x = (funcB.b - funcA.b) / (funcA.a - funcB.a)
-	const y = funcA.a * x + funcA.b
-	return { x, y }
-}
+		const intersectionBetweenLinearFunctions = (funcA, funcB) => {
+			if (funcA.a - funcB.a === 0) {
+				return null
+			}
+			const x = (funcB.b - funcA.b) / (funcA.a - funcB.a)
+			const y = funcA.a * x + funcA.b
+			return { x, y }
+		}
 
-const LOW_BOUND = 200000000000000
-const HIGH_BOUND = 400000000000000
+		const LOW_BOUND = 200000000000000
+		const HIGH_BOUND = 400000000000000
 
-const compareCustom = (a, b, way) => way === -1 ? a > b : a < b
+		const compareCustom = (a, b, way) => way === -1 ? a > b : a < b
 
-const isPointInArea = (intersection, pointA, pointB) =>
-	intersection !== null
-	&& intersection.x >= LOW_BOUND
-	&& intersection.y >= LOW_BOUND
-	&& intersection.x <= HIGH_BOUND
-	&& intersection.y <= HIGH_BOUND
-	&& compareCustom(pointA.x, intersection.x, pointA.vX / Math.abs(pointA.vX))
-	&& compareCustom(pointB.x, intersection.x, pointB.vX / Math.abs(pointB.vX))
-	&& compareCustom(pointA.y, intersection.y, pointA.vY / Math.abs(pointA.vY))
-	&& compareCustom(pointB.y, intersection.y, pointB.vY / Math.abs(pointB.vY))
+		const isPointInArea = (intersection, pointA, pointB) =>
+			intersection !== null
+			&& intersection.x >= LOW_BOUND
+			&& intersection.y >= LOW_BOUND
+			&& intersection.x <= HIGH_BOUND
+			&& intersection.y <= HIGH_BOUND
+			&& compareCustom(pointA.x, intersection.x, pointA.vX / Math.abs(pointA.vX))
+			&& compareCustom(pointB.x, intersection.x, pointB.vX / Math.abs(pointB.vX))
+			&& compareCustom(pointA.y, intersection.y, pointA.vY / Math.abs(pointA.vY))
+			&& compareCustom(pointB.y, intersection.y, pointB.vY / Math.abs(pointB.vY))
 
-const numberOfIntersectionForStone = (stone, stones) =>
-	stones.filter(currentStone => isPointInArea(
-		intersectionBetweenLinearFunctions(currentStone, stone),
-		currentStone,
-		stone
-	)).length
+		const numberOfIntersectionForStone = (stone, stones) =>
+			stones.filter(currentStone => isPointInArea(
+				intersectionBetweenLinearFunctions(currentStone, stone),
+				currentStone,
+				stone
+			)).length
 
-const getNumberOfAllIntersections = stones =>
-	stones.reduce((nbIntersections, stone, index) =>
-		nbIntersections + numberOfIntersectionForStone(stone, stones.slice(index + 1)),
-		0
-	)
+		const getNumberOfAllIntersections = stones =>
+			stones.reduce((nbIntersections, stone, index) =>
+				nbIntersections + numberOfIntersectionForStone(stone, stones.slice(index + 1)),
+				0
+			)
 
-const handleFileContent = lines => {
-	const mainData = lines.map(line => line.split(' @ ').map(split => split.split(', ')).flat()).map(parsedLine =>
-		({ x: parsedLine[0], y: parsedLine[1], vX: parsedLine[3], vY: parsedLine[4] }))
+		const handleFileContent = lines => {
+			const mainData = lines.map(line => line.split(' @ ').map(split => split.split(', ')).flat()).map(parsedLine =>
+				({ x: parsedLine[0], y: parsedLine[1], vX: parsedLine[3], vY: parsedLine[4] }))
 
-	console.log('part1', getNumberOfAllIntersections(mainData.map(data => ({ ...data, ...getLinearFunction(data) }))))
-}
+			console.log('part1', getNumberOfAllIntersections(mainData.map(data => ({ ...data, ...getLinearFunction(data) }))))
+		}
 
-</script>
-<script src="../openingFile.js"></script>
+	</script>
+	<script src="../../openingFile.js"></script>
 </body>
+
 </html>
