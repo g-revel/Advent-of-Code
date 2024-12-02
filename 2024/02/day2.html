@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+    const parseLine = line => line.split(' ').map(splittedLine => parseInt(splittedLine, 10))
+
+    const isLineSafe = line => {
+      let increasing = 0
+      let error = false
+
+      line.slice(1).forEach((level, i) => {
+        if (error) {
+          return false
+        }
+        const diff = level - line[i]
+
+        if (increasing === 1) {
+          if (diff <= 0 || diff > 3) {
+            error = true
+            return false
+          }
+        } else if (increasing === -1) {
+          if (diff >= 0 || diff < -3) {
+            error = true
+            return false
+          }
+        } else {
+          if (Math.abs(diff) > 3 || Math.abs(diff) < 1) {
+            error = true
+            return false
+          }
+          increasing = diff < 0 ? -1 : 1
+        }
+      })
+
+      return !error
+    }
+
+    const getEverySublines = (line) =>
+      line.map((_, i) => [...line.slice(0, i), ...line.slice(i + 1)])
+
+    const isLineAlmostSafe = line => {
+      const isSafe = isLineSafe(line)
+
+      if (isSafe) {
+        return true
+      }
+
+      return getEverySublines(line).some(isLineSafe)
+    }
+
+    const handleFileContent = lines => {
+      const rows = lines.map(parseLine)
+
+      console.log('part 1', rows.filter(isLineSafe).length)
+      console.log('part 2', rows.filter(isLineAlmostSafe).length)
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
