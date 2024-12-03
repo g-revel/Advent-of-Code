@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+    class MyRegExp extends RegExp {
+      [Symbol.matchAll](str) {
+        const result = RegExp.prototype[Symbol.matchAll].call(this, str)
+        if (!result) {
+          return null
+        }
+        return Array.from(result)
+      }
+    }
+
+    const getAllMulInstructions = program => program.matchAll(new MyRegExp('mul\\([0-9]*\,[0-9]*\\)', 'g')).map(result => result[0])
+
+    const getXandYFromMulXY = instruction => instruction.slice(4, instruction.length - 1).split(',')
+
+    const multiplyXandY = array => array[0] * array[1]
+
+    const getSumOfAllMul = program => getAllMulInstructions(program).reduce((sum, instruction) => sum + multiplyXandY(getXandYFromMulXY(instruction)), 0)
+
+    const removeAllInstructionsBetweensDontAndDos = program => {
+      let clearedProgram = ''
+      let isLastInstructionDo = true
+      for (let i = 0; i < program.length; i++) {
+        if (i >= 6) {
+          if (isLastInstructionDo && program.slice(i - 6, i + 1) === "don\'t()") {
+            isLastInstructionDo = false
+          } else if (!isLastInstructionDo && program.slice(i - 3, i + 1) === "do()") {
+            isLastInstructionDo = true
+          }
+        }
+        if (isLastInstructionDo) {
+          clearedProgram += program.charAt(i)
+        }
+      }
+      return clearedProgram
+    }
+
+    const handleFileContent = lines => {
+      const program = lines.join('')
+
+      console.log('part 1', getSumOfAllMul(program))
+      console.log('part 2', getSumOfAllMul(removeAllInstructionsBetweensDontAndDos(program)))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
