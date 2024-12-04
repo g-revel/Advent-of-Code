@@ -69,16 +69,14 @@
       }
 
       const countNumberOfXmas = () =>
-        tab.reduce((acc, line, i) => line.reduce((subAcc, char, j) => {
-          console.log('char', char)
-          return subAcc + getNumberOfXmasFromCoordinates(i, j)
-        }, acc), 0)
+        tab.reduce((acc, line, i) => line.reduce((subAcc, char, j) =>
+          subAcc + getNumberOfXmasFromCoordinates(i, j)
+          , acc), 0)
 
       const countNumberOfXShapedMas = () =>
-        tab.reduce((acc, line, i) => line.reduce((subAcc, char, j) => {
-          console.log('char', char)
-          return subAcc + getNumberOfXShapedMasFromCoordinates(i, j)
-        }, acc), 0)
+        tab.reduce((acc, line, i) => line.reduce((subAcc, char, j) =>
+          subAcc + getNumberOfXShapedMasFromCoordinates(i, j)
+          , acc), 0)
 
       console.log('part 1', countNumberOfXmas())
       console.log('part 2', countNumberOfXShapedMas())
