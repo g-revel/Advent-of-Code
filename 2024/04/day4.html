@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    table,
+    tr,
+    td {
+      border: 1px solid black;
+    }
+  </style>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <table id="test"></table>
+  <script type="text/javascript">
+
+    const LETTERS = ['X', 'M', 'A', 'S']
+
+    const handleFileContent = lines => {
+      const tab = lines.map(line => line.split('').slice(0, line.length))
+
+      const checkForMAS = (x, y, dirX, dirY, index) => {
+        const movX = dirX * index
+        const movY = dirY * index
+        if (x + movX >= 0 && x + movX < tab.length) {
+          if (y + movY >= 0 && y + movY < tab[x + movX].length) {
+            if (tab[x + movX][y + movY] === LETTERS[index]) {
+              if (index === LETTERS.length - 1) {
+                return 1
+              }
+              return checkForMAS(x, y, dirX, dirY, index + 1)
+            }
+          }
+        }
+        return 0
+      }
+
+      const getNumberOfXmasFromCoordinates = (x, y) => {
+        let total = 0
+
+        if (tab[x][y] === LETTERS[0]) {
+          for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+              if (i !== 0 || j !== 0) {
+                total += checkForMAS(x, y, i, j, 1)
+              }
+            }
+          }
+        }
+        return total
+      }
+
+      const getNumberOfXShapedMasFromCoordinates = (x, y) => {
+        if (tab[x][y] === LETTERS[2]) {
+          if (x > 0 && y > 0 && x < (tab.length - 1) && y < (tab[x].length - 1)) {
+            if (tab[x - 1][y - 1] === LETTERS[1] && tab[x + 1][y + 1] === LETTERS[3]
+              || tab[x - 1][y - 1] === LETTERS[3] && tab[x + 1][y + 1] === LETTERS[1]) {
+              if (tab[x - 1][y + 1] === LETTERS[1] && tab[x + 1][y - 1] === LETTERS[3]
+                || tab[x - 1][y + 1] === LETTERS[3] && tab[x + 1][y - 1] === LETTERS[1]) {
+                return 1
+              }
+            }
+          }
+        }
+        return 0
+      }
+
+      const countNumberOfXmas = () =>
+        tab.reduce((acc, line, i) => line.reduce((subAcc, char, j) => {
+          console.log('char', char)
+          return subAcc + getNumberOfXmasFromCoordinates(i, j)
+        }, acc), 0)
+
+      const countNumberOfXShapedMas = () =>
+        tab.reduce((acc, line, i) => line.reduce((subAcc, char, j) => {
+          console.log('char', char)
+          return subAcc + getNumberOfXShapedMasFromCoordinates(i, j)
+        }, acc), 0)
+
+      console.log('part 1', countNumberOfXmas())
+      console.log('part 2', countNumberOfXShapedMas())
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
