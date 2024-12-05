@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <table id="test"></table>
+  <script type="text/javascript">
+
+    const handleFileContent = lines => {
+      const linesToUse = lines // For sample .map(line => line.slice(0, line.length - 1))
+      const splitIndex = linesToUse.indexOf('')
+      const rules = linesToUse.slice(0, splitIndex)
+      const updates = linesToUse.slice(splitIndex + 1).map(update => update.split(','))
+
+      const buildOrder = (everyDifferentNumber) => {
+        const rulesA = []
+        const rulesB = []
+        rules.forEach(rule => {
+          const [a, b] = rule.split('|')
+          if (everyDifferentNumber.includes(a) && everyDifferentNumber.includes(b)) {
+            rulesA.push(a)
+            rulesB.push(b)
+          }
+        })
+        const order = []
+
+        const addNumbersOnlyInAOrPrecededByA = () => {
+          if (order.length === everyDifferentNumber.length) {
+            return order
+          }
+          const numbersPlacedBefore = everyDifferentNumber.filter(number =>
+                          !order.includes(number) && rulesB.every((ruleB, index) =>
+                                  ruleB !== number || order.includes(rulesA[index])
+                          )
+          )
+          numbersPlacedBefore.forEach(number => {
+            !order.includes(number) && order.push(number)
+          })
+          return addNumbersOnlyInAOrPrecededByA()
+        }
+
+        return addNumbersOnlyInAOrPrecededByA()
+      }
+
+      const isUpdateRespectingEveryRule = update =>
+        rules.every((rule) => {
+          const [ruleA, ruleB] = rule.split('|')
+          return !update.includes(ruleA) || !update.includes(ruleB) || update.indexOf(ruleA) < update.indexOf(ruleB)
+        })
+
+      console.log('part 1', updates.filter(isUpdateRespectingEveryRule).reduce((acc, update) =>
+        acc + parseInt(update[(update.length - 1) / 2], 10)
+      , 0
+      ))
+
+      console.log('part 2', updates.filter(update => !isUpdateRespectingEveryRule(update)).map(buildOrder).reduce((acc, update) =>
+                      acc + parseInt(update[(update.length - 1) / 2], 10)
+              , 0
+      ))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
