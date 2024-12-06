@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <table id="test"></table>
+  <script type="text/javascript">
+
+    const getStartingPosition = grid => {
+      let guardStartingPosition = {}
+      grid.some((line, i) => {
+        const j = line.findIndex(char => char === '^')
+        if (j !== -1) {
+          guardStartingPosition['i'] = i
+          guardStartingPosition['j'] = j
+          return true
+        }
+        return false
+      })
+      return guardStartingPosition
+    }
+
+    const getNextPosition = (position, direction) => {
+      switch (direction) {
+        case 0: return { i: position.i - 1, j: position.j }
+        case 1: return { i: position.i, j: position.j + 1 }
+        case 2: return { i: position.i + 1, j: position.j }
+        case 3: return { i: position.i, j: position.j - 1 }
+      }
+    }
+
+    const makeGuardJourney = grid => {
+      const guardStartingPosition = getStartingPosition(grid)
+      const visitedPositions = {}
+      let isFinishedByLoop = false
+
+      const isNextMoveValid = (i, j) =>
+        i >= 0 & j >= 0 && i < grid.length && j < grid[0].length
+
+      const makeGuardMove = (position, direction) => {
+        grid[position['i']][position['j']] = 'X'
+        const visitedPosition = visitedPositions[`${position['i']} ${position['j']}`]
+        if (visitedPosition && visitedPosition.includes(direction)) {
+          isFinishedByLoop = true
+          return
+        } else {
+          if (!visitedPosition) {
+            visitedPositions[`${position['i']} ${position['j']}`] = [direction]
+          } else {
+            visitedPositions[`${position['i']} ${position['j']}`].push(direction)
+          }
+
+          const { i: nextI, j: nextJ } = getNextPosition(position, direction)
+          if (!isNextMoveValid(nextI, nextJ)) {
+            return
+          } else {
+            if (grid[nextI][nextJ] === '#') {
+              makeGuardMove(position, direction === 3 ? 0 : direction + 1)
+            } else {
+              makeGuardMove({ i: nextI, j: nextJ }, direction)
+            }
+          }
+        }
+      }
+
+      makeGuardMove(guardStartingPosition, 0)
+      return isFinishedByLoop
+    }
+
+    const countNumberOfXInGrid = grid =>
+      grid.reduce((acc, line) => line.reduce((subAcc, char) => char === 'X' ? subAcc + 1 : subAcc, acc), 0)
+
+    const countPositionsForObstructions = grid => {
+      let total = 0
+      grid.forEach((line, i) => {
+        line.forEach((char, j) => {
+          if (char === '.') {
+            const gridCopy = JSON.parse(JSON.stringify(grid))
+            gridCopy[i][j] = '#'
+            if (makeGuardJourney(gridCopy)) {
+              total++
+            }
+          }
+        })
+      })
+      return total
+    }
+
+    const handleFileContent = lines => {
+      const linesToUse = lines.map(line => line[line.length - 1] === '\r' ? line.slice(0, line.length - 1) : line)
+
+      const grid = linesToUse.map(line => line.split(''))
+      const gridCopy = linesToUse.map(line => line.split(''))
+
+      console.log('is Loop', makeGuardJourney(grid))
+      console.log('part 1', countNumberOfXInGrid(grid))
+      console.log('part 2', countPositionsForObstructions(gridCopy))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
