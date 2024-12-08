@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <table id="test"></table>
+  <script type="text/javascript">
+
+    const mergeObjects = (obj1, obj2) => {
+      const mergedObject = JSON.parse(JSON.stringify(obj1))
+      Object.keys(obj2).forEach(key => {
+        if (key in mergedObject) {
+          mergedObject[key].push(...obj2[key])
+        } else {
+          mergedObject[key] = obj2[key]
+        }
+      })
+      return mergedObject
+    }
+
+    const getCoordinatesOfAntennasInLine = (line, i) => {
+      const antennas = {}
+      line.split('').forEach((char, j) => {
+        if (char !== '.') {
+          if (char in antennas) {
+            antennas[char].push([i, j])
+          } else {
+            antennas[char] = [[i, j]]
+          }
+        }
+      })
+      return antennas
+    }
+
+    const getCoordinatesOfEveryAntennas = lines =>
+      lines.reduce((acc, line, i) => mergeObjects(acc, getCoordinatesOfAntennasInLine(line, i)), {})
+
+    const getAntinodesForTwoPoints = ([xA, yA], [xB, yB], multiplyer = 1) => {
+      const difX = Math.abs(xA - xB)
+      const difY = Math.abs(yA - yB)
+
+      const minPointX = Math.min(xA, xB) === xA ? [xA, yA] : [xB, yB]
+      const maxPointX = minPointX[0] === xA ? [xB, yB] : [xA, yA]
+
+      const isMinPointXInYToo = Math.min(yA, yB) === yA
+
+      return [
+        [minPointX[0] - (multiplyer * difX), isMinPointXInYToo ? minPointX[1] - (multiplyer * difY) : minPointX[1] + (multiplyer * difY)],
+        [maxPointX[0] + (multiplyer * difX), isMinPointXInYToo ? maxPointX[1] + (multiplyer * difY) : maxPointX[1] - (multiplyer * difY)]
+      ]
+    }
+
+    const getNumberOfUniqueLocationsWithAntinodes = lines => {
+      const antennas = getCoordinatesOfEveryAntennas(lines)
+      let coordinatesWithAntinodes = new Set()
+
+      const isPointValid = ([pointA, pointB]) =>
+        pointA >= 0 && pointB >= 0 && pointA < lines.length && pointB < lines[0].length
+
+      const addAntinodeCoordinates = points => {
+        for (let i = 1; i < points.length; i++) {
+          points.slice(i).forEach(point => {
+            getAntinodesForTwoPoints(points[i - 1], point).filter(isPointValid).forEach(([antinodeA, antinodeB]) => {
+              coordinatesWithAntinodes.add(`${antinodeA} ${antinodeB}`)
+            })
+          })
+        }
+      }
+
+      Object.values(antennas).forEach(points => {
+        addAntinodeCoordinates(points)
+      })
+
+      return coordinatesWithAntinodes.size
+    }
+
+    const getNumberOfUniqueLocationsWithAntinodesWithHarmonics = lines => {
+      const antennas = getCoordinatesOfEveryAntennas(lines)
+      let coordinatesWithAntinodes = new Set()
+
+      const isPointValid = ([pointA, pointB]) =>
+        pointA >= 0 && pointB >= 0 && pointA < lines.length && pointB < lines[0].length
+
+      const addAntinodeCoordinates = points => {
+        for (let i = 1; i < points.length; i++) {
+          points.slice(i).forEach((point, index) => {
+            if (index === 0) {
+              coordinatesWithAntinodes.add(`${points[0][0]} ${points[0][1]}`)
+            }
+
+            coordinatesWithAntinodes.add(`${point[0]} ${point[1]}`)
+            let antinodesToAdd
+            let multiplyer = 0
+            do {
+              multiplyer++
+              antinodesToAdd = getAntinodesForTwoPoints(points[i - 1], point, multiplyer).filter(isPointValid)
+              antinodesToAdd.forEach(([antinodeA, antinodeB]) => {
+                coordinatesWithAntinodes.add(`${antinodeA} ${antinodeB}`)
+              })
+            } while (antinodesToAdd.length > 0)
+          })
+        }
+      }
+
+      Object.values(antennas).forEach(points => {
+        addAntinodeCoordinates(points)
+      })
+
+      return coordinatesWithAntinodes.size
+    }
+
+    const handleFileContent = lines => {
+      const linesToUse = lines.map(line => line[line.length - 1] === '\r' ? line.slice(0, line.length - 1) : line)
+
+      console.log('part 1', getNumberOfUniqueLocationsWithAntinodes(linesToUse))
+      console.log('part 2', getNumberOfUniqueLocationsWithAntinodesWithHarmonics(linesToUse))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
