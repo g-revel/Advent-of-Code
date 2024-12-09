@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <table id="test"></table>
+  <script type="text/javascript">
+
+    const pushInDisk = (line, disk, id) => {
+      if (line.length <= 0) {
+        return id
+      }
+
+      for (let i = 0; i < parseInt(line[0], 10); i++) {
+        disk.push(id)
+      }
+
+      for (let i = 0; i < parseInt(line[1], 10); i++) {
+        disk.push(-1)
+      }
+
+      return pushInDisk(line.slice(2), disk, id + 1)
+    }
+
+    const getDisk = lines => {
+      const disk = []
+      const halfTimeIndex = pushInDisk(lines[0].split('').slice(0, 10000), disk, 0)
+      pushInDisk(lines[0].split('').slice(10000), disk, halfTimeIndex)
+      return disk
+    }
+
+    const getCompactedDisk = disk => {
+      const compactedDisk = [...disk]
+      let endShift = 0
+      for (let i = 0; i < compactedDisk.length; i++) {
+        if (i >= compactedDisk.length - 1 - endShift) {
+          break
+        }
+        if (compactedDisk[i] === -1) {
+          while (compactedDisk[compactedDisk.length - 1 - endShift] === -1) {
+            endShift++
+          }
+          if (i >= compactedDisk.length - 1 - endShift) {
+            break
+          }
+          compactedDisk[i] = compactedDisk[compactedDisk.length - 1 - endShift]
+          compactedDisk[compactedDisk.length - 1 - endShift] = -1
+          endShift++
+        }
+      }
+
+      return compactedDisk
+    }
+
+    const getCompactedDiskMovingFile = disk => {
+      const compactedDisk = [...disk]
+
+      let fileToMoveId = compactedDisk[compactedDisk.length - 1]
+
+      while (fileToMoveId > 0) {
+        const sizeOfFileToMove = compactedDisk.filter(number => number === fileToMoveId).length
+        const indexOfFile = compactedDisk.findIndex(number => number === fileToMoveId)
+
+        let numberOfConsecutiveSpaces = 0
+        let isPossibleToMoveFile = false
+        let indexOfSpaces = 0
+        for (let i = 0; i < indexOfFile + sizeOfFileToMove; i++) {
+          if (numberOfConsecutiveSpaces === sizeOfFileToMove) {
+            isPossibleToMoveFile = true
+            break
+          }
+          if (compactedDisk[i] === -1) {
+            if (numberOfConsecutiveSpaces === 0) {
+              indexOfSpaces = i
+            }
+            numberOfConsecutiveSpaces++
+          } else {
+            numberOfConsecutiveSpaces = 0
+          }
+        }
+
+        if (isPossibleToMoveFile) {
+          for (let i = indexOfSpaces; i < indexOfSpaces + sizeOfFileToMove; i++) {
+            compactedDisk[i] = fileToMoveId
+            compactedDisk[indexOfFile + (i - indexOfSpaces)] = -1
+          }
+        }
+
+        fileToMoveId--
+      }
+
+      return compactedDisk
+    }
+
+    const computeChecksum = disk => disk.reduce((acc, number, i) =>
+      number === -1 ? acc : acc + (number * i)
+      , 0)
+
+    const handleFileContent = lines => {
+      const linesToUse = lines.map(line => line[line.length - 1] === '\r' ? line.slice(0, line.length - 1) : line)
+
+      const disk = getDisk(linesToUse)
+      console.log('part 1', computeChecksum(getCompactedDisk(disk)))
+      console.log('part 2', computeChecksum(getCompactedDiskMovingFile(disk)))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
