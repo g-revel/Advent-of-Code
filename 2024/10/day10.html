@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <table id="test"></table>
+  <script type="text/javascript">
+
+    const parseMap = lines => lines.map(line => line.split('').map(char => parseInt(char, 10)))
+
+    const getAllTrailheads = map => map.reduce((trailheads, line, i) => {
+      const trailheadsInLine = []
+      line.forEach((number, j) => {
+        if (number === 0) {
+          trailheadsInLine.push([j, i])
+        }
+      })
+      return [ ...trailheads, ...trailheadsInLine ]
+    }, [])
+
+    const getTrailheadScore = ([x, y], map) => {
+
+      const progressTrail = ([x, y], number, endsReached) => {
+        if (x < 0 || y < 0 || y >= map.length || x >= map[0].length || map[y][x] !== number) {
+          return
+        }
+        if (number === 9) {
+          endsReached.add(`${x} ${y}`)
+          return
+        }
+        return [[-1, 0], [0, -1], [1, 0], [0, 1]].forEach(directions =>
+                        progressTrail([x + directions[0], y + directions[1]], number + 1, endsReached)
+                , 0)
+      }
+
+      const ends = new Set()
+      progressTrail([x, y], 0, ends)
+      return ends.size
+    }
+
+    const getTrailheadScorePart2 = ([x, y], map) => {
+      const progressTrail = ([x, y], number) => {
+        if (x < 0 || y < 0 || y >= map.length || x >= map[0].length || map[y][x] !== number) {
+          return 0
+        }
+        if (number === 9) {
+          return 1
+        }
+        return [[-1, 0], [0, -1], [1, 0], [0, 1]].reduce((acc, directions) =>
+          acc + progressTrail([x + directions[0], y + directions[1]], number + 1)
+        , 0)
+      }
+
+      return progressTrail([x, y], 0)
+    }
+
+    const getScores = (map, isPart2 = false) => getAllTrailheads(map).map(trailhead => isPart2
+            ? getTrailheadScorePart2(trailhead, map)
+            : getTrailheadScore(trailhead, map))
+
+    const getSumOfScores = (lines, isPart2 = false) => getScores(parseMap(lines), isPart2).reduce((acc, score) => acc + score, 0)
+
+    const handleFileContent = lines => {
+      const linesToUse = lines.map(line => line[line.length - 1] === '\r' ? line.slice(0, line.length - 1) : line)
+
+      console.log('part 1', getSumOfScores(linesToUse))
+      console.log('part 1', getSumOfScores(linesToUse, true))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
