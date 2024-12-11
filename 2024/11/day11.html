@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <table id="test"></table>
+  <script type="text/javascript">
+
+    const getNumberOfStones = (lines, numberOfBlinks) => {
+      const recursiveSavingBlink = (saves, stone, i) => {
+        if (i === numberOfBlinks) {
+          return 1
+        }
+        if (saves[`${stone} ${i}`]) {
+          return saves[`${stone} ${i}`]
+        }
+        if (stone === 0) {
+          const numberOfStones = recursiveSavingBlink(saves, 1, i + 1)
+          saves[`${stone} ${i}`] = numberOfStones
+          return numberOfStones
+        }
+        const stringStone = stone.toString()
+        if (stringStone.length % 2 === 0) {
+          const number1 = recursiveSavingBlink(saves, parseInt(stringStone.slice(0, stringStone.length / 2)), i + 1)
+          const number2 = recursiveSavingBlink(saves, parseInt(stringStone.slice(stringStone.length / 2)), i + 1)
+          saves[`${stone} ${i}`] = number1 + number2
+          return number1 + number2
+        }
+        const number = recursiveSavingBlink(saves, stone * 2024, i + 1)
+        saves[`${stone} ${i}`] = number
+        return number
+      }
+
+
+      const saves = {}
+      return lines.reduce((acc, stone) =>
+        acc + recursiveSavingBlink(saves, stone, 0), 0
+      )
+    }
+
+    const handleFileContent = lines => {
+      const linesToUse = lines.map(line => line[line.length - 1] === '\r' ? line.slice(0, line.length - 1) : line)
+
+      const stones = linesToUse[0].split(' ').map(stone => parseInt(stone, 10))
+      console.log('part 1', getNumberOfStones(stones, 25))
+      console.log('part 2', getNumberOfStones(stones, 75))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
