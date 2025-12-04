@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+    const computeShift = (line, value, isPart2) => {
+      const direction = line[0]
+      const shift = parseInt(line.slice(1), 10)
+
+      const newRawValue = (value + (direction === 'R' ? shift : shift * -1))
+      const newValue = newRawValue % 100
+
+      return {
+        newValue,
+        counterChange: isPart2 ? Math.floor(Math.abs(newRawValue / 100)) : newValue === 0 ? 1 : 0
+      }
+    }
+
+    const getNextValue = (lines, value, counter, isPart2) => {
+      const { newValue, counterChange } = computeShift(lines[0], value, isPart2)
+      return lines.length > 1
+              ? getNextValue(lines.slice(1), newValue, counter + counterChange, isPart2)
+              : counter
+    }
+
+    const getNumberOfTimeWeGetToZero = (lines, isPart2) => {
+      const startingValue = 50
+      return getNextValue(lines, startingValue, 0, isPart2)
+    }
+
+    const handleFileContent = lines => {
+      console.log('lines', lines)
+      console.log('part 1', getNumberOfTimeWeGetToZero(lines))
+      console.log('part 2', getNumberOfTimeWeGetToZero(lines, true))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
