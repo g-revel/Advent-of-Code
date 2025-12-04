@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+    const splitStringInElementsOfSizeN = (string, n) =>
+      Array.from({length: string.length / n}).reduce((acc, char, i) => [ ...acc, string.slice(i*n, (i+1)*n)], [])
+
+    const isSequenceOfNInvalidating = (string, n) => {
+      const splittedString = splitStringInElementsOfSizeN(string, n)
+      return splittedString.every(element => element === splittedString[0])
+    }
+
+    const isNumberInvalid = (string, isPart2) => {
+      if (isPart2) {
+        return Array.from({length: Math.floor(string.length / 2)}, (v, i) => i + 1)
+                .filter(n => string.length % n === 0)
+                .some(n => isSequenceOfNInvalidating(string, n))
+      }
+      return string.length % 2 === 0 && isSequenceOfNInvalidating(string, string.length / 2)
+    }
+
+    const addInvalidIdsForRange = ([range1, range2], isPart2) => {
+      let number = 0
+      for (let i = range1; i <= range2; i++) {
+        if (isNumberInvalid(`${i}`, isPart2)) {
+          number+=i
+        }
+      }
+      return number
+    }
+
+    const addInvalidIds = (ranges, isPart2) => ranges.reduce((acc, range) => acc + addInvalidIdsForRange(range, isPart2), 0)
+
+    const handleFileContent = lines => {
+      const ranges = lines[0].split(',').map(id => id.split('-').map(number => parseInt(number, 10)))
+      console.log('part 1', addInvalidIds(ranges))
+      console.log('part 2', addInvalidIds(ranges, true))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
