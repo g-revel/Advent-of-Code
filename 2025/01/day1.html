@@ -16,9 +16,15 @@
       const newRawValue = (value + (direction === 'R' ? shift : shift * -1))
       const newValue = newRawValue % 100
 
+      const newValueIsZero = newValue === 0 ? 1 : 0
+
       return {
-        newValue,
-        counterChange: isPart2 ? Math.floor(Math.abs(newRawValue / 100)) : newValue === 0 ? 1 : 0
+        newValue: newValue < 0 ? newValue + 100 : newValue,
+        counterChange: isPart2
+                ? Math.floor(Math.abs(newRawValue / 100))
+                  + (newRawValue < 0 && value !== 0 && newValue !== 0 ? 1 : 0)
+                  + (newValueIsZero && direction === 'L')
+                : newValueIsZero
       }
     }
 
@@ -35,7 +41,6 @@
     }
 
     const handleFileContent = lines => {
-      console.log('lines', lines)
       console.log('part 1', getNumberOfTimeWeGetToZero(lines))
       console.log('part 2', getNumberOfTimeWeGetToZero(lines, true))
     }
