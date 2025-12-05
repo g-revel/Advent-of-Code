@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+
+    const getNumberOfAccessibleRolls = (map) => {
+      const newMap = JSON.parse(JSON.stringify(map))
+
+      const isRollAccessible = (i, j) => {
+        if (map[i][j] === '.') {
+          return false
+        }
+
+        let adjacent = 0
+        let shiftI = -1
+        let shiftJ = -1
+        do {
+          if ((i + shiftI) >= 0 && (j + shiftJ) >= 0 && (i + shiftI) < map.length && (j + shiftJ) < map[0].length && (shiftJ !== 0 || shiftI !== 0) && map[i + shiftI][j + shiftJ] === '@') {
+            adjacent++
+          }
+          if (shiftI === 1) {
+            shiftI = -1
+            shiftJ++
+          } else {
+            shiftI++
+          }
+        } while (adjacent < 4 && shiftJ < 2)
+
+        return adjacent < 4
+      }
+
+      const numberOfRolls = map.reduce((acc, line, i) => acc + line.reduce((acc2, _, j) => {
+          const isAccessible = isRollAccessible(i, j)
+          if (isAccessible) {
+            newMap[i][j] = '.'
+          }
+          return acc2 + (isAccessible ? 1 : 0)
+        }, 0
+      ), 0)
+
+      return { newMap, numberOfRolls }
+    }
+
+    const getNumberOfAccessibleRollsPart2 = map => {
+      let mapToUse = map
+      let totalNumber = 0
+      let numberOfRemovedRolls
+      do {
+        const { newMap, numberOfRolls } = getNumberOfAccessibleRolls(mapToUse)
+        mapToUse = newMap
+        numberOfRemovedRolls = numberOfRolls
+        totalNumber += numberOfRolls
+      } while(numberOfRemovedRolls > 0)
+
+      return totalNumber
+    }
+
+    const handleFileContent = lines => {
+      const map = lines.map(line => line.split(''))
+      console.log('part 1', getNumberOfAccessibleRolls(map).numberOfRolls)
+      console.log('part 2', getNumberOfAccessibleRollsPart2(map))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
