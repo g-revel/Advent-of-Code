@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+
+    const getNumberOfFresh = (ingredients, ranges) => ingredients.filter(ingredient => ranges.some(range => ingredient >= range[0] && ingredient <= range[1])).length
+
+    const getNumberOfAllFresh = ranges => {
+      let totalNumber = 0
+      const mergeInterval = (interval1, interval2) => {
+        if (interval2[0] > interval1[1]) {
+          totalNumber += ((interval1[1] - interval1[0]) + 1)
+          return interval2
+        }
+        if (interval2[1] <= interval1[1]) {
+          return interval1
+        }
+        return [interval1[0], interval2[1]]
+      }
+
+      ranges.sort((a, b) => a[0] - b[0])
+      const finalInterval = ranges.slice(1).reduce((acc, range) => mergeInterval(acc, range), ranges[0])
+      totalNumber += ((finalInterval[1] - finalInterval[0]) + 1)
+      return totalNumber
+    }
+
+    const handleFileContent = lines => {
+      const [ranges, ingredients] = lines.reduce((acc, line) => {
+        if (line === '') {
+          return acc
+        }
+        if (line.includes('-')) {
+          return [ [ ...acc[0], line.split('-').map(n => parseInt(n, 10)) ], acc[1] ]
+        }
+        return [ acc[0], [ ...acc[1], parseInt(line, 10) ] ]
+      }, [ [], []])
+
+      console.log('part 1', getNumberOfFresh(ingredients, ranges))
+      console.log('part 2', getNumberOfAllFresh(ranges))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
