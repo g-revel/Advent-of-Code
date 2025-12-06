@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+
+    const transpose = array => array[0].map((col, i) => array.map(row => row[i]))
+
+    const computeLine = line => line.slice(0, line.length - 1).reduce((acc, number) => (line[line.length - 1] === "*" ? acc *= number : acc += number), line[line.length - 1] === "*" ? 1 : 0)
+
+    const getTotal = operations => operations.reduce((acc, line) => acc + computeLine(line), 0)
+
+
+
+    const handleFileContent = lines => {
+      const alignments = []
+      const grid = lines.map(line => line.split(''))
+      grid[grid.length - 1].forEach((symbol, columnIndex) => {
+        if (symbol === '+' || symbol === '*') {
+          alignments.push(grid.some(line => line[columnIndex] === ' '))
+        }
+      })
+      const operations = transpose(lines.map(line => line.split(' ').filter(a => a !== '').map(a => a === "*" || a === "+" ? a : parseInt(a, 10))))
+
+
+
+      const transposeLineRightToLeft = (line, mapIndex) => {
+        const numbers = line.slice(0, line.length - 1)
+        const operator = line[line.length - 1]
+        const alignedToRight = alignments[mapIndex]
+        const maxPowerOfTen = `${Math.max(...numbers)}`.length - 1
+
+        return Array.from({length: maxPowerOfTen + 1}, ((a, i) => maxPowerOfTen - i)).reduce((acc, index, i) => {
+          let transposed = ''
+          numbers.forEach(number => {
+            if (alignedToRight) {
+              if (`${number}`.length > i) {
+                transposed += `${number}`[`${number}`.length - 1 - i]
+              }
+            } else {
+              if (`${number}`.length > index) {
+                transposed += `${number}`[index]
+              }
+            }
+          })
+          return [ ...acc , parseInt(transposed, 10) ]
+        }, []).reduce((acc, transposedNumber) => operator === "*" ? acc *= transposedNumber : acc += transposedNumber, operator === "*" ? 1 : 0)
+      }
+
+      console.log('part 1', getTotal(operations))
+      console.log('part 2', operations.map(transposeLineRightToLeft).reduce((acc, result) => acc + result, 0))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
