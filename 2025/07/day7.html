@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+    const recursiveBeam = (graph, beam, index) => {
+      if (graph[index][beam] === '.') {
+        if (graph.length === (index + 1)) {
+          return 1
+        }
+        const result = recursiveBeam(graph, beam, index + 1)
+        graph[index][beam] = result
+        return result
+      }
+      if (graph[index][beam] === '^') {
+        return recursiveBeam(graph, beam - 1, index + 1) + recursiveBeam(graph, beam + 1, index + 1)
+      }
+      return graph[index][beam]
+    }
+
+    const handleLine = (indexes, line) => {
+      let numberOfSplit = 0
+      const splittersIndex = line.reduce((acc, char, i) => char === '^' ? [ ...acc, i ] : acc, [])
+
+      const result = indexes.reduce((acc, index) => {
+        if (splittersIndex.includes(index)) {
+          numberOfSplit++
+          return [...acc, index - 1, index + 1]
+        }
+        return [ ...acc, index ]
+      }
+      , [])
+
+      return [[ ...new Set(result) ], numberOfSplit]
+    }
+
+    const handleFileContent = lines => {
+      const start = lines[0].split('').findIndex(char => char === 'S')
+      let indexes = [start]
+      let numberOfSplit = 0
+      lines.slice(1).forEach(line => {
+        const [newIndexes, splits] = handleLine(indexes, line.split(''))
+        indexes = newIndexes
+        numberOfSplit += splits
+      })
+
+      console.log('part 1', numberOfSplit)
+      console.log('part 2', recursiveBeam(lines.map(line => line.split('')).slice(1), start, 0))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
