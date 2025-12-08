@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <input type="file" id="inputFichier" />
+  <script type="text/javascript">
+
+    let id = 0
+
+    const getDistance = ([pointAX, pointAY, pointAZ], [pointBX, pointBY, pointBZ]) =>
+      Math.sqrt(Math.pow(pointAX - pointBX, 2) + Math.pow(pointAY - pointBY, 2) + Math.pow(pointAZ - pointBZ, 2))
+
+    const getDistancesForPoint = (points, pointI, i) => points.map(((point, j) => ({ id: id++, points: [i, j + i + 1], distance: getDistance(point, pointI)})))
+
+    const getPointsWithDistance = (points) => {
+      return points.reduce((acc, _, i) => {
+        return [ ...acc, ...getDistancesForPoint(points.slice(i + 1), points[i], i) ]
+      }, [])
+    }
+
+    const getCircuits = (points, steps, isPart2) => {
+      const pointsWithDistance = getPointsWithDistance(points)
+      pointsWithDistance.sort((a, b) => a.distance - b.distance)
+
+      let iteratorShift = 0
+      let circuits = points.map((_, i) => [i])
+      let i = 0
+
+      let closestPointA
+      let closestPointB
+      while ((isPart2 && circuits.length > 1) || (!isPart2 && i < steps)) {
+        i++
+        closestPointA = pointsWithDistance[i + iteratorShift].points[0]
+        closestPointB = pointsWithDistance[i + iteratorShift].points[1]
+
+        if (!circuits.some(circuit => circuit.includes(closestPointA) && circuit.includes(closestPointB))) {
+          const circuitA = circuits.findIndex(circuit => circuit.includes(closestPointA))
+          const circuitB = circuits.findIndex(circuit => circuit.includes(closestPointB))
+          circuits[circuitA].push(...circuits[circuitB])
+          circuits = [ ...circuits.slice(0, circuitB), ...circuits.slice(circuitB + 1) ]
+        }
+      }
+      if (isPart2) {
+        console.log('part 2', points[closestPointA][0] * points[closestPointB][0])
+      }
+      return circuits
+    }
+
+    const multiplyThreeBiggestCircuits = (circuits) => {
+      circuits.sort((a, b) => b.length - a.length)
+      return circuits[0].length * circuits[1].length * circuits[2].length
+    }
+
+    const handleFileContent = lines => {
+      const points = lines.map(line => line.split(',').map(char => parseInt(char, 10)))
+
+      const circuits = getCircuits(points, 1000)
+      const circuits2 = getCircuits(points, 0, true)
+
+      console.log('part 1', multiplyThreeBiggestCircuits(circuits))
+    }
+
+  </script>
+  <script src="../../openingFile.js"></script>
+</body>
+
+</html>
